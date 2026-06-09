@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reapus — AI Legal Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:#B8922A; --gold-l:#D4AE5A; --gold-bg:#FDF8EE; --gold-border:rgba(184,146,42,.22);
+  --bg:#F8F6F1; --bg2:#FFFFFF; --bg3:#F3F0EA; --bg4:#EAE6DC;
+  --sidebar:#181A22; --sidebar2:#22242E; --s-text:#C4C0B6; --s-dim:#58566A;
+  --border:rgba(0,0,0,.08); --border2:rgba(0,0,0,.05);
+  --text:#18160F; --text2:#5A5648; --text3:#9A9488;
+  --red:#C43A3A; --red-bg:rgba(196,58,58,.08);
+  --green:#2A8050; --green-bg:rgba(42,128,80,.08);
+  --blue:#2860A8; --blue-bg:rgba(40,96,168,.08);
+  --r:10px; --rl:14px;
+  --ease:cubic-bezier(.4,0,.2,1);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* ─── GLOBAL ANIMATIONS ─── */
+@keyframes fadeUp   {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn   {from{opacity:0}to{opacity:1}}
+@keyframes slideIn  {from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes scaleIn  {from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse    {0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.82)}}
+@keyframes shimmer  {0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes spin     {to{transform:rotate(360deg)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn    {from{opacity:0;transform:scale(.88) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes toastIn  {from{opacity:0;transform:translateY(24px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes glow     {0%,100%{box-shadow:0 0 0 0 rgba(184,146,42,0)}50%{box-shadow:0 0 14px 3px rgba(184,146,42,.18)}}
+@keyframes dotBlink {0%,80%,100%{opacity:0;transform:scale(.6)}40%{opacity:1;transform:scale(1)}}
+
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column}
+
+/* ─── TOPBAR ─── */
+.topbar{display:flex;align-items:center;gap:18px;padding:0 24px;height:56px;background:var(--sidebar);flex-shrink:0;z-index:20;box-shadow:0 1px 0 rgba(255,255,255,.04)}
+
+.logo{display:flex;align-items:center;gap:10px;margin-right:6px;cursor:pointer;transition:opacity .2s}
+.logo:hover{opacity:.85}
+.logo-mark{width:34px;height:34px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;transition:transform .35s var(--spring),box-shadow .35s;box-shadow:0 2px 8px rgba(184,146,42,.35);position:relative;overflow:visible}
+.logo:hover .logo-mark{transform:translateY(-4px) scale(1.08);box-shadow:0 8px 22px rgba(184,146,42,.55)}
+.logo-mark svg{transition:transform .35s var(--spring)}
+.logo:hover .logo-mark svg{transform:scale(1.12)}
+/* briefcase lid lift on hover */
+@keyframes lidLift{0%,100%{transform:none}40%{transform:translateY(-2px) rotate(-4deg)}70%{transform:translateY(-1px) rotate(-2deg)}}
+.logo:hover .logo-mark .bc-lid{animation:lidLift .5s var(--spring)}
+.logo-text{font-family:'DM Serif Display',serif;font-size:21px;color:#ECD9B2;letter-spacing:.3px}
+.logo-sub{font-size:9px;color:var(--s-dim);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+
+.topbar-search{flex:1;max-width:360px;position:relative}
+.topbar-search input{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:7px 14px 7px 36px;color:#fff;font-family:'Outfit',sans-serif;font-size:13px;outline:none;transition:border-color .25s,background .25s,box-shadow .25s}
+.topbar-search input:focus{border-color:rgba(184,146,42,.5);background:rgba(255,255,255,.1);box-shadow:0 0 0 3px rgba(184,146,42,.1)}
+.topbar-search input::placeholder{color:var(--s-dim)}
+.topbar-search .si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--s-dim);transition:color .2s;pointer-events:none}
+.topbar-search input:focus ~ .si{color:var(--gold)}
+
+.topbar-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.tib{width:32px;height:32px;border-radius:7px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--s-text);transition:all .2s var(--ease);position:relative}
+.tib:hover{background:rgba(255,255,255,.14);color:#fff;transform:translateY(-1px)}
+.tib:active{transform:translateY(0)}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--gold);border-radius:50%;border:1.5px solid var(--sidebar);animation:glow 2.5s infinite}
+.t-avatar{width:32px;height:32px;border-radius:7px;background:rgba(184,146,42,.22);border:1.5px solid rgba(184,146,42,.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#ECD9B2;cursor:pointer;transition:all .2s}
+.t-avatar:hover{background:rgba(184,146,42,.32);transform:translateY(-1px)}
+.topbar-btn{display:flex;align-items:center;gap:6px;padding:0 14px;height:32px;background:var(--gold);color:#fff;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .2s var(--spring);box-shadow:0 2px 8px rgba(184,146,42,.3)}
+.topbar-btn:hover{background:var(--gold-l);transform:translateY(-1px);box-shadow:0 4px 14px rgba(184,146,42,.4)}
+.topbar-btn:active{transform:translateY(0)}
+
+/* ─── MAIN ─── */
+.main{display:flex;flex:1;min-height:0}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:272px;
+  min-width:272px;
+  background:var(--sidebar);
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  overflow-x:hidden;
+  flex-shrink:0;
+  border-right:1px solid rgba(255,255,255,.05);
+}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+
+.sb-section{padding:20px 14px 10px}
+.sb-label{font-size:9px;color:var(--s-dim);letter-spacing:2.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px;padding:0 8px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--s-text);transition:all .2s var(--ease);font-weight:400;position:relative;overflow:hidden;margin-bottom:2px}
+.nav-item::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,.06);opacity:0;transition:opacity .2s}
+.nav-item:hover::before{opacity:1}
+.nav-item:hover{color:#fff;transform:translateX(3px)}
+.nav-item.active{background:rgba(184,146,42,.15);color:#ECD9B2;font-weight:500}
+.nav-item.active svg{color:var(--gold)}
+.nav-item svg{flex-shrink:0;width:16px;height:16px;transition:transform .2s var(--spring)}
+.nav-item:hover svg{transform:scale(1.15)}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,.08);color:var(--s-dim);font-size:10.5px;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.nav-item.active .nav-badge{background:rgba(184,146,42,.25);color:#ECD9B2}
+.nav-badge.alert{background:rgba(196,58,58,.25);color:#F08080}
+.sb-divider{height:1px;background:rgba(255,255,255,.06);margin:8px 14px}
+
+/* CLIENT LIST — no height cap, flows naturally in sidebar scroll */
+.client-list{padding:4px 12px 16px}
+.client-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:all .2s var(--ease);animation:slideIn .3s var(--ease) both;margin-bottom:1px}
+.client-item:hover{background:rgba(255,255,255,.07);transform:translateX(3px)}
+.client-item.active{background:rgba(255,255,255,.11)}
+.c-av{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;transition:transform .2s var(--spring)}
+.client-item:hover .c-av{transform:scale(1.08)}
+.ci{flex:1;min-width:0}
+.ci-name{font-size:12.5px;color:var(--s-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.ci-type{font-size:10.5px;color:var(--s-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.c-active{background:#4CAF80}.c-pending{background:var(--gold)}.c-closed{background:var(--s-dim)}.c-urgent{background:#E85454;animation:glow 2s infinite}
+
+/* ─── CONTENT ─── */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;background:var(--bg);display:flex;flex-direction:column;min-width:0}
+.content::-webkit-scrollbar{width:5px}
+.content::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+
+/* ─── PAGE VIEWS ─── */
+/* Each page fills the content column exactly — no overflow pushing the sidebar */
+.page-view{display:none;flex-direction:column;min-height:0;overflow:visible}
+.page-view.active{display:flex}
+
+/* Pages that are simple scrollers (not dashboard with sticky header) */
+.page-view.scroll-page{overflow-y:auto}
+.page-view.scroll-page::-webkit-scrollbar{width:5px}
+.page-view.scroll-page::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+
+/* ─── MATTER HEADER ─── */
+.matter-header{padding:20px 26px 0;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;box-shadow:0 1px 0 var(--border2)}
+.breadcrumb{font-size:11.5px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:5px;animation:slideDown .3s var(--ease)}
+.bc-link{color:var(--gold);cursor:pointer;transition:opacity .15s}
+.bc-link:hover{opacity:.75;text-decoration:underline}
+.matter-title-row{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;animation:fadeUp .35s var(--ease)}
+.m-avatar{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:19px;font-style:italic;flex-shrink:0;transition:transform .3s var(--spring);box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.m-avatar:hover{transform:scale(1.06) rotate(-3deg)}
+.matter-title{flex:1}
+.matter-name{font-family:'DM Serif Display',serif;font-size:25px;color:var(--text);line-height:1.1;margin-bottom:5px}
+.matter-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.meta-chip{font-size:11.5px;color:var(--text3);display:flex;align-items:center;gap:5px}
+.matter-actions{display:flex;gap:8px;align-items:flex-start;flex-shrink:0}
+
+/* BUTTONS */
+.btn{padding:8px 15px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .2s var(--spring);display:flex;align-items:center;gap:6px;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.15);opacity:0;transition:opacity .15s}
+.btn:hover::after{opacity:1}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--gold);color:#fff;box-shadow:0 2px 8px rgba(184,146,42,.28)}
+.btn-primary:hover{background:var(--gold-l);transform:translateY(-1px);box-shadow:0 4px 14px rgba(184,146,42,.38)}
+.btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--bg4);color:var(--text);transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(196,58,58,.2)}
+.btn-danger:hover{background:rgba(196,58,58,.15);transform:translateY(-1px)}
+
+.status-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;transition:all .2s}
+.badge-active{background:var(--green-bg);color:var(--green)}.badge-pending{background:var(--gold-bg);color:var(--gold)}.badge-urgent{background:var(--red-bg);color:var(--red)}.badge-closed{background:var(--bg4);color:var(--text3)}
+
+/* TABS */
+.matter-tabs{display:flex;margin-top:4px}
+.tab{padding:11px 16px;font-size:13px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s var(--ease);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:600}
+.tab-count{font-size:10.5px;background:var(--bg3);border-radius:10px;padding:1px 6px;font-family:'DM Mono',monospace;color:var(--text3);transition:all .2s}
+.tab.active .tab-count{background:var(--gold-bg);color:var(--gold)}
+
+/* ─── PANELS ─── */
+.panel{padding:22px 26px}
+.tab-panel{display:none;flex:1;min-height:0;overflow-y:auto;animation:fadeUp .3s var(--ease)}
+.tab-panel::-webkit-scrollbar{width:5px}
+.tab-panel::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+.tab-panel.active{display:block}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;position:relative;overflow:hidden;cursor:pointer;transition:all .25s var(--ease);animation:fadeUp .4s var(--ease) both}
+.kpi-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.09);border-color:var(--gold-border)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;transition:height .25s}
+.kpi-card:hover::before{height:4px}
+.kpi-gold::before{background:var(--gold)}.kpi-red::before{background:var(--red)}.kpi-green::before{background:var(--green)}.kpi-blue::before{background:var(--blue)}
+.kpi-label{font-size:10.5px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-weight:500}
+.kpi-value{font-size:28px;font-weight:600;font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px;transition:transform .2s var(--spring)}
+.kpi-card:hover .kpi-value{transform:scale(1.04)}
+.kpi-sub{font-size:11px;color:var(--text3)}
+.kpi-gold .kpi-value{color:var(--gold)}.kpi-red .kpi-value{color:var(--red)}.kpi-green .kpi-value{color:var(--green)}.kpi-blue .kpi-value{color:var(--blue)}
+
+.two-col{display:grid;grid-template-columns:1fr 310px;gap:14px;margin-bottom:20px}
+
+/* SECTION CARDS */
+.section-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:box-shadow .25s;animation:fadeUp .4s var(--ease) both}
+.section-head{padding:13px 18px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px}
+.section-head-title{font-size:13px;font-weight:600;color:var(--text);flex:1;display:flex;align-items:center;gap:8px}
+.section-head-title svg{color:var(--gold);transition:transform .2s var(--spring)}
+.section-head:hover .section-head-title svg{transform:scale(1.15)}
+.section-head-action{font-size:12px;color:var(--gold);cursor:pointer;font-weight:600;padding:3px 8px;border-radius:5px;transition:all .15s}
+.section-head-action:hover{background:var(--gold-bg);transform:translateX(2px)}
+
+/* TIMELINE */
+.timeline{padding:10px 18px}
+.timeline-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);transition:background .15s;border-radius:6px;cursor:pointer;animation:fadeUp .35s var(--ease) both}
+.timeline-item:hover{background:var(--bg3);padding-left:6px;padding-right:6px}
+.timeline-item:last-child{border-bottom:none}
+.tl-dot-col{display:flex;flex-direction:column;align-items:center;padding-top:4px;width:18px;flex-shrink:0}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:transform .2s var(--spring)}
+.timeline-item:hover .tl-dot{transform:scale(1.4)}
+.tl-line{width:1px;flex:1;background:var(--border2);margin-top:4px;min-height:18px}
+.tl-content{flex:1;min-width:0}
+.tl-what{font-size:12.5px;color:var(--text);line-height:1.4;margin-bottom:3px}
+.tl-meta{font-size:10.5px;color:var(--text3);display:flex;gap:10px}
+.tl-type{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;flex-shrink:0;align-self:flex-start;margin-top:2px;transition:transform .2s}
+.timeline-item:hover .tl-type{transform:scale(1.05)}
+
+/* DEADLINES */
+.deadline-list{padding:4px 0}
+.deadline-item{display:flex;align-items:center;padding:10px 18px;gap:12px;border-bottom:1px solid var(--border2);cursor:pointer;transition:all .2s var(--ease)}
+.deadline-item:hover{background:var(--bg3);padding-left:22px}
+.deadline-item:last-child{border-bottom:none}
+.deadline-date{width:44px;text-align:center;flex-shrink:0}
+.deadline-day{font-size:19px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;transition:transform .2s var(--spring)}
+.deadline-item:hover .deadline-day{transform:scale(1.12)}
+.deadline-month{font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--text3)}
+.deadline-info{flex:1;min-width:0}
+.deadline-title{font-size:12.5px;color:var(--text);font-weight:600}
+.deadline-sub{font-size:11px;color:var(--text3)}
+.deadline-urgency{font-size:10.5px;padding:3px 9px;border-radius:20px;font-weight:600;flex-shrink:0;transition:transform .2s}
+.deadline-item:hover .deadline-urgency{transform:scale(1.06)}
+.urg-critical{background:var(--red-bg);color:var(--red)}.urg-soon{background:var(--gold-bg);color:var(--gold)}.urg-ok{background:var(--green-bg);color:var(--green)}
+
+/* DOCS */
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;padding:14px}
+.doc-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;cursor:pointer;transition:all .25s var(--spring);position:relative;animation:scaleIn .35s var(--ease) both}
+.doc-card:hover{border-color:var(--gold-border);background:var(--bg4);transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.08)}
+.doc-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:16px;transition:transform .25s var(--spring)}
+.doc-card:hover .doc-icon{transform:scale(1.12) rotate(-4deg)}
+.doc-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.35}
+.doc-meta{font-size:10.5px;color:var(--text3)}
+.doc-badge{position:absolute;top:10px;right:10px;font-size:9.5px;padding:2px 7px;border-radius:20px;font-weight:600}
+
+/* AI RECS */
+.ai-head{padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--gold-bg) 0%,var(--bg2) 60%)}
+.ai-head-title{font-size:13px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.ai-head-sub{font-size:11px;color:var(--text3)}
+.ai-recs-grid{display:grid;grid-template-columns:repeat(3,1fr)}
+.ai-rec{padding:18px 20px;border-right:1px solid var(--border2);cursor:pointer;transition:all .2s var(--ease);animation:fadeUp .4s var(--ease) both}
+.ai-rec:last-child{border-right:none}
+.ai-rec:hover{background:var(--gold-bg);transform:translateY(-1px)}
+.ai-rec-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ai-rec-priority{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:transform .2s var(--spring)}
+.ai-rec:hover .ai-rec-priority{transform:scale(1.5)}
+.ai-rec-title{font-size:12.5px;font-weight:700;color:var(--text);flex:1}
+.ai-rec-conf{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);flex-shrink:0}
+.ai-rec-body{font-size:11.5px;color:var(--text2);line-height:1.55;margin-bottom:10px}
+.ai-rec-actions{display:flex;gap:6px}
+.ai-btn{font-size:11px;padding:5px 11px;border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;border:none;transition:all .2s var(--spring)}
+.ai-btn:hover{transform:translateY(-1px)}
+.ai-btn:active{transform:scale(.96)}
+.ai-btn-primary{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-border)}
+.ai-btn-primary:hover{background:rgba(184,146,42,.18)}
+.ai-btn-ghost{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+.ai-btn-ghost:hover{color:var(--text2);background:var(--bg4)}
+
+/* REMINDER */
+.reminder-item{display:flex;align-items:center;padding:9px 18px;gap:12px;border-bottom:1px solid var(--border2);cursor:pointer;transition:all .2s var(--ease)}
+.reminder-item:hover{background:var(--bg3);padding-left:22px}
+.reminder-item:last-child{border-bottom:none}
+.rem-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;transition:transform .25s var(--spring)}
+.reminder-item:hover .rem-icon{transform:scale(1.15) rotate(-5deg)}
+.rem-text{flex:1;font-size:12.5px;color:var(--text);line-height:1.35}
+.rem-time{font-size:10.5px;color:var(--text3);flex-shrink:0;font-family:'DM Mono',monospace}
+
+/* EMAILS */
+.email-item{display:flex;align-items:flex-start;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border2);cursor:pointer;transition:all .2s var(--ease);animation:fadeUp .35s var(--ease) both}
+.email-item:hover{background:var(--bg3);padding-left:22px}
+.email-item.unread{background:rgba(184,146,42,.03);border-left:3px solid var(--gold)}
+.email-item:last-child{border-bottom:none}
+.e-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0;transition:transform .2s var(--spring)}
+.e-dot.read{background:transparent}
+.email-item:hover .e-dot{transform:scale(1.4)}
+.e-from{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:2px}
+.e-subj{font-size:12px;color:var(--text2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:480px}
+.e-prev{font-size:11.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:480px}
+.e-time{font-size:11px;color:var(--text3);flex-shrink:0;margin-top:1px;font-family:'DM Mono',monospace}
+
+/* ─── MODALS ─── */
+.modal-overlay{position:fixed;inset:0;background:rgba(20,18,14,.45);z-index:100;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px);animation:fadeIn .2s}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:560px;max-height:86vh;overflow-y:auto;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.16);animation:popIn .35s var(--spring);position:relative}
+.modal-wide{width:740px}
+.modal-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--text3);margin-bottom:20px;line-height:1.5}
+.modal-close{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:6px;background:var(--bg3);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:14px;transition:all .2s;line-height:1}
+.modal-close:hover{background:var(--bg4);color:var(--text);transform:rotate(90deg)}
+
+.form-row{margin-bottom:14px}
+.form-label{font-size:11.5px;color:var(--text2);margin-bottom:5px;display:block;font-weight:600;letter-spacing:.3px}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 13px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13.5px;outline:none;transition:all .25s}
+.form-input:focus{border-color:var(--gold);background:#fff;box-shadow:0 0 0 3px rgba(184,146,42,.1)}
+textarea.form-input{resize:vertical}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border2)}
+
+/* AI ANALYZE */
+.analyze-result{background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);padding:16px;margin-top:16px;animation:fadeUp .35s var(--ease)}
+.analyze-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11.5px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.analyze-item{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid rgba(184,146,42,.15);font-size:12.5px;color:var(--text2);line-height:1.5;transition:background .15s;cursor:default;border-radius:4px}
+.analyze-item:hover{background:rgba(184,146,42,.06);padding-left:4px}
+.analyze-item:last-child{border-bottom:none}
+.analyze-item strong{color:var(--text);font-weight:700}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--sidebar);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:300;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.2);opacity:0;transform:translateY(24px) scale(.95);transition:all .35s var(--spring);pointer-events:none;border:1px solid rgba(255,255,255,.08)}
+.toast.show{opacity:1;transform:translateY(0) scale(1)}
+.toast-icon{font-size:16px}
+
+/* PULSE */
+.pulse{display:inline-block;width:8px;height:8px;background:var(--gold);border-radius:50%;animation:pulse 1.5s infinite}
+
+/* TYPING DOTS */
+.typing-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);margin:0 2px;animation:dotBlink 1.4s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+
+/* LOADING SPINNER */
+.spinner{width:18px;height:18px;border:2px solid rgba(184,146,42,.25);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+
+/* ALL CLIENTS PAGE */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;animation:fadeUp .35s var(--ease)}
+.clients-table{width:100%;border-collapse:collapse}
+.clients-table th{font-size:11px;color:var(--text3);text-align:left;padding:8px 14px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.clients-table td{padding:12px 14px;border-bottom:1px solid var(--border2);font-size:13px;color:var(--text);transition:background .15s}
+.clients-table tr:last-child td{border-bottom:none}
+.clients-table tbody tr{transition:all .2s;animation:fadeUp .3s var(--ease) both;cursor:pointer}
+.clients-table tbody tr:hover td{background:var(--bg3)}
+
+/* DOC FILTER */
+.filter-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;animation:slideDown .3s var(--ease)}
+.filter-chip{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .2s var(--spring)}
+.filter-chip:hover{border-color:var(--gold-border);color:var(--gold);transform:translateY(-1px)}
+.filter-chip.active{background:var(--gold-bg);border-color:var(--gold);color:var(--gold)}
+
+/* DEADLINE FULL ITEMS */
+.dl-full-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .25s var(--ease);animation:fadeUp .35s var(--ease) both}
+.dl-full-item:hover{border-color:var(--gold-border);box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateX(4px)}
+
+/* SETTINGS */
+.settings-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:16px;overflow:hidden;animation:fadeUp .35s var(--ease) both}
+.settings-card-title{font-size:13px;font-weight:700;color:var(--text);padding:14px 20px;border-bottom:1px solid var(--border2)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-bottom:1px solid var(--border2);transition:background .15s}
+.settings-row:last-child{border-bottom:none}
+.settings-row:hover{background:var(--bg3)}
+.s-label{font-size:13px;color:var(--text);font-weight:500}
+.s-sub{font-size:11.5px;color:var(--text3)}
+.toggle{width:40px;height:22px;border-radius:20px;background:var(--bg4);cursor:pointer;position:relative;transition:background .25s;border:none;flex-shrink:0}
+.toggle.on{background:var(--gold)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .25s var(--spring);box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.toggle.on::after{left:21px}
+
+/* PROFILE GRID */
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.pf{background:var(--bg3);border-radius:8px;padding:12px 14px;transition:background .15s;cursor:default}
+.pf:hover{background:var(--bg4)}
+.pf-label{font-size:10.5px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.pf-val{font-size:13px;color:var(--text);font-weight:500}
+
+/* UPDATE TYPE */
+.upd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.upd-btn{padding:10px 8px;border-radius:8px;background:var(--bg3);border:2px solid transparent;cursor:pointer;text-align:center;transition:all .2s var(--spring);font-family:'Outfit',sans-serif}
+.upd-btn:hover{border-color:var(--gold-border);background:var(--gold-bg);transform:translateY(-2px)}
+.upd-btn.selected{border-color:var(--gold);background:var(--gold-bg)}
+.upd-icon{font-size:20px;margin-bottom:4px}
+.upd-label{font-size:11px;color:var(--text2);font-weight:600}
+
+/* EMAIL DETAIL */
+.email-detail{padding:20px}
+.ed-subject{font-family:'DM Serif Display',serif;font-size:19px;color:var(--text);margin-bottom:6px}
+.ed-meta{font-size:12px;color:var(--text3);margin-bottom:0}
+.ed-body{font-size:13.5px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border2);padding-top:16px;margin-top:14px}
+.ed-body p{margin-bottom:10px}
+
+/* ─── QUARTZ PILLAR ─── */
+@keyframes quartzShimmer {
+  0%   { opacity:.18; transform:translateY(0px)   scaleX(1); }
+  30%  { opacity:.32; transform:translateY(-3px)  scaleX(.97); }
+  60%  { opacity:.22; transform:translateY(-1px)  scaleX(.99); }
+  100% { opacity:.18; transform:translateY(0px)   scaleX(1); }
+}
+@keyframes quartzGlow {
+  0%,100% { filter:drop-shadow(0 0 6px rgba(230,210,170,.10)); }
+  50%      { filter:drop-shadow(0 0 18px rgba(230,210,170,.28)); }
+}
+@keyframes quartzFloat {
+  0%,100% { transform:translateY(0); }
+  50%     { transform:translateY(-5px); }
+}
+.quartz-wrap{
+  padding:20px 14px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  border-top:1px solid rgba(255,255,255,.06);
+  margin-top:auto;
+}
+.quartz-label {
+  font-size:8.5px;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--s-dim);
+  font-weight:500;
+  text-align:center;
+  margin-top:2px;
+}
+.quartz-svg {
+  animation: quartzFloat 5s ease-in-out infinite, quartzGlow 4s ease-in-out infinite;
+  cursor:default;
+}
+
+/* STAGGER ANIMATIONS */
+.kpi-card:nth-child(1){animation-delay:.05s}
+.kpi-card:nth-child(2){animation-delay:.1s}
+.kpi-card:nth-child(3){animation-delay:.15s}
+.kpi-card:nth-child(4){animation-delay:.2s}
+.timeline-item:nth-child(1){animation-delay:.05s}
+.timeline-item:nth-child(2){animation-delay:.1s}
+.timeline-item:nth-child(3){animation-delay:.15s}
+.timeline-item:nth-child(4){animation-delay:.2s}
+.timeline-item:nth-child(5){animation-delay:.25s}
+.ai-rec:nth-child(1){animation-delay:.08s}
+.ai-rec:nth-child(2){animation-delay:.16s}
+.ai-rec:nth-child(3){animation-delay:.24s}
+.doc-card:nth-child(1){animation-delay:.04s}
+.doc-card:nth-child(2){animation-delay:.08s}
+.doc-card:nth-child(3){animation-delay:.12s}
+.doc-card:nth-child(4){animation-delay:.16s}
+.doc-card:nth-child(5){animation-delay:.20s}
+.doc-card:nth-child(6){animation-delay:.24s}
+.email-item:nth-child(1){animation-delay:.04s}
+.email-item:nth-child(2){animation-delay:.08s}
+.email-item:nth-child(3){animation-delay:.12s}
+.email-item:nth-child(4){animation-delay:.16s}
+.email-item:nth-child(5){animation-delay:.20s}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo" onclick="setPage('dashboard')">
+    <div class="logo-mark">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+        <rect class="bc-body" x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+        <path class="bc-lid" d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        <line x1="12" y1="12" x2="12" y2="16"/>
+        <line x1="10" y1="14" x2="14" y2="14"/>
+      </svg>
+    </div>
+    <div><div class="logo-text">Reapus</div><div class="logo-sub">Legal Intelligence</div></div>
+  </div>
+
+  <div class="topbar-search">
+    <svg class="si" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="Search clients, documents, matters…" id="gSearch" oninput="handleSearch(this.value)">
+  </div>
+
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="openModal('new-client')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      New Client
+    </button>
+    <div class="tib" onclick="openModal('reminders')" title="Reminders">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-dot"></span>
+    </div>
+    <div class="t-avatar" onclick="openModal('my-profile')">JD</div>
+  </div>
+</div>
+
+<div class="main">
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+  <!-- FIRM IDENTITY -->
+  <div style="padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.06)">
+    <div style="font-size:10px;color:var(--s-dim);letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:10px">Firm</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:8px;background:rgba(184,146,42,.18);border:1px solid rgba(184,146,42,.3);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#ECD9B2;flex-shrink:0">JD</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#ECD9B2">James A. Davis</div>
+        <div style="font-size:10.5px;color:var(--s-dim)">Davis &amp; Associates LLP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN NAV -->
+  <div class="sb-section">
+    <div class="sb-label">Main Menu</div>
+    <div class="nav-item active" id="nav-dashboard" onclick="setPage('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" id="nav-clients" onclick="setPage('clients')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      All Clients <span class="nav-badge" id="nav-clients-badge">8</span>
+    </div>
+    <div class="nav-item" id="nav-documents" onclick="setPage('documents')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Documents <span class="nav-badge">147</span>
+    </div>
+    <div class="nav-item" id="nav-deadlines" onclick="setPage('deadlines')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Deadlines <span class="nav-badge alert" id="nav-deadlines-badge">—</span>
+    </div>
+    <div class="nav-item" id="nav-billing" onclick="setPage('billing')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Billing <span class="nav-badge" id="nav-billing-badge">—</span>
+    </div>
+    <div class="nav-item" id="nav-emails" onclick="setPage('emails')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Emails <span class="nav-badge">11</span>
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="setPage('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+  </div>
+
+  <div class="sb-divider"></div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="sb-section" style="padding-top:14px;padding-bottom:12px">
+    <div class="sb-label">Quick Actions</div>
+    <div class="nav-item" onclick="openModal('new-client')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      New Client
+    </div>
+    <div class="nav-item" onclick="openModal('add-update')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Log Update
+    </div>
+    <div class="nav-item" onclick="openModal('add-deadline')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+      Add Deadline
+    </div>
+    <div class="nav-item" onclick="openModal('compose-email')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      Compose Email
+    </div>
+    <div class="nav-item" onclick="openInvoiceModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+      New Invoice
+    </div>
+    <div class="nav-item" onclick="openModal('upload-doc')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Upload Document
+    </div>
+    <div class="nav-item" onclick="openModal('analyze')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      AI Analyze
+    </div>
+  </div>
+
+  <div class="sb-divider"></div>
+
+  <!-- CLIENT LIST -->
+  <div style="padding:14px 14px 6px">
+    <div class="sb-label">Active Matters</div>
+  </div>
+  <div class="client-list" id="clientList"></div>
+
+  <!-- QUARTZ PILLAR FOOTER -->
+  <div class="quartz-wrap">
+    <svg class="quartz-svg" width="44" height="90" viewBox="0 0 44 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="qFace" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#E8D5A8" stop-opacity="0.55"/>
+          <stop offset="40%" stop-color="#F5EDD0" stop-opacity="0.85"/>
+          <stop offset="100%" stop-color="#C4A96A" stop-opacity="0.45"/>
+        </linearGradient>
+        <linearGradient id="qRight" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#C4A96A" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="#8A7040" stop-opacity="0.3"/>
+        </linearGradient>
+        <linearGradient id="qTop" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#F5EDD0" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#D4B870" stop-opacity="0.6"/>
+        </linearGradient>
+        <linearGradient id="qShimmer" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="white" stop-opacity="0.18"/>
+          <stop offset="35%" stop-color="white" stop-opacity="0.06"/>
+          <stop offset="65%" stop-color="white" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0.04"/>
+        </linearGradient>
+        <linearGradient id="qVein1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#F5EDD0" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#F5EDD0" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#F5EDD0" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="qVein2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#C4A96A" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#C4A96A" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#C4A96A" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Cap top -->
+      <polygon points="6,14 22,6 38,14 22,22" fill="url(#qTop)" stroke="rgba(200,170,90,.4)" stroke-width="0.5"/>
+      <!-- Left face -->
+      <polygon points="6,14 6,76 22,84 22,22" fill="url(#qFace)" stroke="rgba(200,170,90,.25)" stroke-width="0.5"/>
+      <!-- Right face -->
+      <polygon points="22,22 22,84 38,76 38,14" fill="url(#qRight)" stroke="rgba(200,170,90,.25)" stroke-width="0.5"/>
+      <!-- Shimmer overlay on left face -->
+      <polygon points="6,14 6,76 22,84 22,22" fill="url(#qShimmer)"/>
+      <!-- Vein 1 -->
+      <line x1="10" y1="30" x2="20" y2="55" stroke="url(#qVein1)" stroke-width="1.2"/>
+      <!-- Vein 2 -->
+      <line x1="26" y1="24" x2="34" y2="60" stroke="url(#qVein2)" stroke-width="0.8"/>
+      <!-- Inner crack line -->
+      <polyline points="14,35 17,48 15,62" stroke="rgba(245,237,208,.18)" stroke-width="0.7" fill="none"/>
+      <!-- Base bottom left -->
+      <line x1="6" y1="76" x2="22" y2="84" stroke="rgba(200,170,90,.5)" stroke-width="0.8"/>
+    </svg>
+    <div class="quartz-label">Reapus · AI Legal OS</div>
+  </div>
+
+</div><!-- /sidebar -->
+
+<!-- CONTENT -->
+<div class="content" id="contentRoot">
+
+<!-- ══ PAGE: DASHBOARD ══ -->
+<div id="page-dashboard" class="page-view active">
+
+  <!-- MATTER HEADER -->
+  <div class="matter-header">
+    <div class="breadcrumb">
+      <span class="bc-link" onclick="setPage('clients')">All Clients</span>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      <span id="bcName">Shute, Isaac</span>
+    </div>
+    <div class="matter-title-row">
+      <div class="m-avatar" id="mAvatar" style="background:rgba(40,96,168,.1);color:#2860A8">AT</div>
+      <div class="matter-title">
+        <div class="matter-name" id="mName">Isaac Shute</div>
+        <div class="matter-meta">
+          <span class="status-badge badge-active" id="mStatus">Active</span>
+          <span class="meta-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span id="mCase">Corporate Merger — Alderman Holdings LLC</span></span>
+          <span class="meta-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Opened Jan 14, 2025</span>
+          <span class="meta-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Atty. J. Davis</span>
+        </div>
+      </div>
+      <div class="matter-actions">
+        <button class="btn btn-secondary" onclick="openModal('analyze')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>AI Analyze
+        </button>
+        <button class="btn btn-secondary" onclick="openModal('client-profile')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Client Profile
+        </button>
+        <button class="btn btn-primary" onclick="openModal('add-update')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>Add Update
+        </button>
+      </div>
+    </div>
+    <div class="matter-tabs">
+      <div class="tab active" onclick="switchTab(this,'overview')">Overview</div>
+      <div class="tab" onclick="switchTab(this,'timeline')">Timeline <span class="tab-count" id="tab-ct-timeline">—</span></div>
+      <div class="tab" onclick="switchTab(this,'docs')">Documents <span class="tab-count" id="tab-ct-docs">—</span></div>
+      <div class="tab" onclick="switchTab(this,'mail')">Emails <span class="tab-count" id="tab-ct-mail">—</span></div>
+      <div class="tab" onclick="switchTab(this,'dl')">Deadlines <span class="tab-count" id="tab-ct-dl">—</span></div>
+      <div class="tab" onclick="switchTab(this,'ai')">AI Actions <span class="tab-count" id="tab-ct-ai">—</span></div>
+      <div class="tab" onclick="switchTab(this,'invoices')">Billing <span class="tab-count" id="tab-ct-inv">—</span></div>
+    </div>
+  </div>
+
+  <!-- TAB: OVERVIEW -->
+  <div id="tp-overview" class="tab-panel active">
+  <div class="panel">
+    <div class="kpi-row">
+      <div class="kpi-card kpi-gold" onclick="switchTabByName('dl')"><div class="kpi-label">Days Open</div><div class="kpi-value" id="kpi-days">122</div><div class="kpi-sub">Matter timeline</div></div>
+      <div class="kpi-card kpi-red" onclick="switchTabByName('dl')"><div class="kpi-label">Urgent Items</div><div class="kpi-value" id="kpi-urgent">3</div><div class="kpi-sub">Require attention</div></div>
+      <div class="kpi-card kpi-green" onclick="switchTabByName('docs')"><div class="kpi-label">Documents</div><div class="kpi-value" id="kpi-docs">12</div><div class="kpi-sub">In this matter</div></div>
+      <div class="kpi-card kpi-blue" onclick="switchTabByName('ai')"><div class="kpi-label">AI Confidence</div><div class="kpi-value" id="kpi-ai">87%</div><div class="kpi-sub">Recommended actions</div></div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-head-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Recent Activity</div>
+            <div class="section-head-action" onclick="switchTabByName('timeline')">View all →</div>
+          </div>
+          <div class="timeline" id="dyn-timeline">
+            <div class="timeline-item" onclick="openModal('add-update')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--gold)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">SEC filing draft reviewed and returned with annotations</div><div class="tl-meta"><span>Today, 9:14 AM</span><span>J. Davis</span></div></div><div class="tl-type" style="background:var(--gold-bg);color:var(--gold)">Filing</div></div>
+            <div class="timeline-item" onclick="openModal('email-view')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">Email from opposing counsel re: deposition schedule</div><div class="tl-meta"><span>Yesterday, 4:02 PM</span><span>External</span></div></div><div class="tl-type" style="background:var(--blue-bg);color:var(--blue)">Email</div></div>
+            <div class="timeline-item" onclick="openModal('analyze')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">Merger agreement v4 uploaded — 48 pages, pending AI review</div><div class="tl-meta"><span>May 14, 2026</span><span>Paralegal M. Chen</span></div></div><div class="tl-type" style="background:var(--green-bg);color:var(--green)">Doc</div></div>
+            <div class="timeline-item" onclick="openModal('deadline-detail')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--red)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">Deadline flagged: Hart-Scott-Rodino antitrust filing due May 23</div><div class="tl-meta"><span>May 13, 2026</span><span>Auto-detected by Reapus</span></div></div><div class="tl-type" style="background:var(--red-bg);color:var(--red)">Alert</div></div>
+            <div class="timeline-item" onclick="openModal('add-update')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--text3)"></div></div><div class="tl-content"><div class="tl-what">Client call — 45 min. Discussed board composition post-merger.</div><div class="tl-meta"><span>May 12, 2026</span><span>J. Davis</span></div></div><div class="tl-type" style="background:var(--bg4);color:var(--text3)">Call</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-head-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Upcoming Deadlines</div>
+            <div class="section-head-action" onclick="switchTabByName('dl')">View all →</div>
+          </div>
+          <div class="deadline-list" id="dyn-deadlines-card">
+            <div class="deadline-item" onclick="openModal('deadline-detail')"><div class="deadline-date" style="color:var(--red)"><div class="deadline-day">23</div><div class="deadline-month">May</div></div><div class="deadline-info"><div class="deadline-title">HSR Antitrust Filing</div><div class="deadline-sub">Federal mandatory</div></div><div class="deadline-urgency urg-critical">7 days</div></div>
+            <div class="deadline-item" onclick="openModal('deadline-detail')"><div class="deadline-date" style="color:var(--gold)"><div class="deadline-day">29</div><div class="deadline-month">May</div></div><div class="deadline-info"><div class="deadline-title">Board Approval Docs</div><div class="deadline-sub">Client deliverable</div></div><div class="deadline-urgency urg-soon">13 days</div></div>
+            <div class="deadline-item" onclick="openModal('deadline-detail')"><div class="deadline-date" style="color:var(--text2)"><div class="deadline-day">08</div><div class="deadline-month">Jun</div></div><div class="deadline-info"><div class="deadline-title">Merger Closing Date</div><div class="deadline-sub">Target — tentative</div></div><div class="deadline-urgency urg-ok">23 days</div></div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-head-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Follow-up Reminders</div>
+            <div class="section-head-action" onclick="openModal('reminders')">View all →</div>
+          </div>
+          <div id="dyn-reminders">
+          <div class="reminder-item" onclick="toast('✅','Reminder marked complete')"><div class="rem-icon" style="background:var(--red-bg)">📞</div><div class="rem-text">Call client re: HSR filing consent</div><div class="rem-time" style="color:var(--red)">Today</div></div>
+          <div class="reminder-item" onclick="openModal('compose-email')"><div class="rem-icon" style="background:var(--gold-bg)">📧</div><div class="rem-text">Reply to opposing counsel on deposition</div><div class="rem-time">Tomorrow</div></div>
+          <div class="reminder-item" onclick="switchTabByName('docs')"><div class="rem-icon" style="background:var(--blue-bg)">📋</div><div class="rem-text">Send merger v4 redlines to client</div><div class="rem-time">May 19</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI RECS -->
+    <div class="section-card" style="margin-bottom:0">
+      <div class="ai-head">
+        <div class="ai-head-title"><span class="pulse"></span>Reapus AI · Legal Action Recommendations</div>
+        <div class="ai-head-sub">Analyzed from documents, emails, and case history · Live</div>
+      </div>
+      <div class="ai-recs-grid" id="dyn-ai-recs">
+        <div class="ai-rec">
+          <div class="ai-rec-header"><div class="ai-rec-priority" style="background:var(--red)"></div><div class="ai-rec-title">File HSR Notification</div><div class="ai-rec-conf">94%</div></div>
+          <div class="ai-rec-body">Merger value ~$142M triggers mandatory FTC/DOJ pre-merger filing. Deadline: May 23.</div>
+          <div class="ai-rec-actions"><button class="ai-btn ai-btn-primary" onclick="openModal('analyze')">Review ↗</button><button class="ai-btn ai-btn-ghost" onclick="toast('✅','Dismissed')">Dismiss</button></div>
+        </div>
+        <div class="ai-rec">
+          <div class="ai-rec-header"><div class="ai-rec-priority" style="background:var(--gold)"></div><div class="ai-rec-title">Indemnification Gap</div><div class="ai-rec-conf">87%</div></div>
+          <div class="ai-rec-body">§8.3(b) survival clause is 18 months; market standard is 36 months. Revise before sign-off.</div>
+          <div class="ai-rec-actions"><button class="ai-btn ai-btn-primary" onclick="switchTabByName('docs')">Review ↗</button><button class="ai-btn ai-btn-ghost" onclick="toast('✅','Dismissed')">Dismiss</button></div>
+        </div>
+        <div class="ai-rec">
+          <div class="ai-rec-header"><div class="ai-rec-priority" style="background:var(--blue)"></div><div class="ai-rec-title">Deposition Strategy</div><div class="ai-rec-conf">78%</div></div>
+          <div class="ai-rec-body">Opposing counsel to depose CFO Martinez. Prep documentation and brief CFO. Est. 8–12 hrs.</div>
+          <div class="ai-rec-actions"><button class="ai-btn ai-btn-primary" onclick="openModal('add-update')">Review ↗</button><button class="ai-btn ai-btn-ghost" onclick="toast('✅','Dismissed')">Dismiss</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- TAB: TIMELINE -->
+  <div id="tp-timeline" class="tab-panel">
+  <div class="panel">
+    <div class="section-card" style="margin-bottom:0">
+      <div class="section-head">
+        <div class="section-head-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Full Matter Timeline</div>
+        <button class="btn btn-primary" style="height:28px;padding:0 12px;font-size:12px" onclick="openModal('add-update')">+ Log Entry</button>
+      </div>
+      <div class="timeline" style="padding:14px 22px">
+        <div class="timeline-item" onclick="openModal('add-update')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--gold)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">SEC filing draft reviewed and returned with annotations</div><div class="tl-meta"><span>Today, 9:14 AM</span><span>J. Davis</span></div></div><div class="tl-type" style="background:var(--gold-bg);color:var(--gold)">Filing</div></div>
+        <div class="timeline-item" onclick="openModal('email-view')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">Email from opposing counsel re: deposition schedule for CFO Martinez</div><div class="tl-meta"><span>Yesterday, 4:02 PM</span><span>External</span></div></div><div class="tl-type" style="background:var(--blue-bg);color:var(--blue)">Email</div></div>
+        <div class="timeline-item" onclick="openModal('analyze')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">Merger agreement v4 uploaded — 48 pages, flagged for AI review</div><div class="tl-meta"><span>May 14, 2026</span><span>Paralegal M. Chen</span></div></div><div class="tl-type" style="background:var(--green-bg);color:var(--green)">Doc</div></div>
+        <div class="timeline-item" onclick="openModal('deadline-detail')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--red)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">Deadline auto-detected: HSR antitrust filing due May 23, 2026</div><div class="tl-meta"><span>May 13, 2026</span><span>Reapus AI</span></div></div><div class="tl-type" style="background:var(--red-bg);color:var(--red)">Alert</div></div>
+        <div class="timeline-item" onclick="openModal('add-update')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--text3)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">Client call — 45 min. Discussed board composition post-merger</div><div class="tl-meta"><span>May 12, 2026</span><span>J. Davis</span></div></div><div class="tl-type" style="background:var(--bg4);color:var(--text3)">Call</div></div>
+        <div class="timeline-item" onclick="openModal('email-view')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">Merger agreement v3 sent to opposing counsel for review</div><div class="tl-meta"><span>May 9, 2026</span><span>J. Davis</span></div></div><div class="tl-type" style="background:var(--blue-bg);color:var(--blue)">Email</div></div>
+        <div class="timeline-item" onclick="openModal('add-update')"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--gold)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-what">Due diligence report finalized — 127 pages submitted to client</div><div class="tl-meta"><span>May 5, 2026</span><span>M. Chen, J. Davis</span></div></div><div class="tl-type" style="background:var(--gold-bg);color:var(--gold)">Filing</div></div>
+        <div class="timeline-item"><div class="tl-dot-col"><div class="tl-dot" style="background:var(--green)"></div></div><div class="tl-content"><div class="tl-what">Matter opened — retainer signed, initial consultation documented</div><div class="tl-meta"><span>Jan 14, 2025</span><span>J. Davis</span></div></div><div class="tl-type" style="background:var(--green-bg);color:var(--green)">Open</div></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- TAB: DOCUMENTS -->
+  <div id="tp-docs" class="tab-panel">
+  <div class="panel">
+    <div class="section-card" style="margin-bottom:0">
+      <div class="section-head">
+        <div class="section-head-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Documents</div>
+        <button class="btn btn-primary" style="height:28px;padding:0 12px;font-size:12px" onclick="openModal('upload-doc')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload
+        </button>
+      </div>
+      <div class="doc-grid" id="dyn-docs"></div>
+    </div>
+  </div>
+  </div>
+
+  <!-- TAB: EMAILS -->
+  <div id="tp-mail" class="tab-panel">
+  <div class="panel">
+    <div class="section-card" style="margin-bottom:0">
+      <div class="section-head">
+        <div class="section-head-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Client &amp; Matter Emails</div>
+        <button class="btn btn-primary" style="height:28px;padding:0 12px;font-size:12px" onclick="openModal('compose-email')">+ Compose</button>
+      </div>
+      <div id="dyn-emails"></div>
+    </div>
+  </div>
+  </div>
+
+  <!-- TAB: DEADLINES -->
+  <div id="tp-dl" class="tab-panel">
+  <div class="panel">
+    <div class="section-card" style="margin-bottom:0">
+      <div class="section-head">
+        <div class="section-head-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Deadlines &amp; Key Dates</div>
+        <button class="btn btn-primary" style="height:28px;padding:0 12px;font-size:12px" onclick="openModal('add-deadline')">+ Add Deadline</button>
+      </div>
+      <div class="deadline-list" id="dyn-deadlines-tab"></div>
+    </div>
+  </div>
+  </div>
+
+  <!-- TAB: AI ACTIONS -->
+  <div id="tp-ai" class="tab-panel">
+  <div class="panel">
+    <div class="section-card" style="margin-bottom:0">
+      <div class="ai-head" style="padding:18px 22px">
+        <div class="ai-head-title" style="font-size:14px"><span class="pulse"></span>Reapus AI · Legal Intelligence Engine</div>
+        <div class="ai-head-sub" style="margin-top:4px">Analyzing documents, emails, and timeline events · Live</div>
+      </div>
+      <div id="dyn-ai-tab" style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+        <div class="ai-rec" style="border:1px solid var(--border);border-radius:var(--r);padding:18px 20px">
+          <div class="ai-rec-header"><div class="ai-rec-priority" style="background:var(--red)"></div><div class="ai-rec-title">Loading AI recommendations…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- TAB: INVOICES -->
+  <div id="tp-invoices" class="tab-panel">
+    <div id="dyn-invoices-tab"></div>
+  </div>
+
+</div><!-- /page-dashboard -->
+
+<!-- ══ PAGE: ALL CLIENTS ══ -->
+<div id="page-clients" class="page-view scroll-page" style="padding:26px">
+  <div class="page-header">
+    <div><h1 style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);margin-bottom:3px">All Clients</h1><p style="font-size:13px;color:var(--text3)">24 active matters — sorted A–Z</p></div>
+    <button class="btn btn-primary" onclick="openModal('new-client')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>New Client</button>
+  </div>
+  <div class="section-card" style="margin-bottom:0">
+    <table class="clients-table"><thead><tr><th>Client</th><th>Matter</th><th>Practice Area</th><th>Status</th><th>Last Activity</th><th>Action</th></tr></thead>
+    <tbody id="clientsTableBody"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ PAGE: DOCUMENTS ══ -->
+<div id="page-documents" class="page-view scroll-page" style="padding:26px">
+  <div class="page-header">
+    <div><h1 style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);margin-bottom:3px">All Documents</h1><p style="font-size:13px;color:var(--text3)">147 documents across 24 matters</p></div>
+    <button class="btn btn-primary" onclick="openModal('upload-doc')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload Document</button>
+  </div>
+  <div class="filter-row">
+    <div class="filter-chip active" onclick="filterDocs(this,'All')">All</div>
+    <div class="filter-chip" onclick="filterDocs(this,'Needs AI Review')">Needs AI Review</div>
+    <div class="filter-chip" onclick="filterDocs(this,'Pending')">Pending</div>
+    <div class="filter-chip" onclick="filterDocs(this,'Signed')">Signed</div>
+    <div class="filter-chip" onclick="filterDocs(this,'Reviewed')">Reviewed</div>
+  </div>
+  <div class="doc-grid" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px">
+    <div class="doc-card" onclick="openModal('analyze')"><div class="doc-icon" style="background:var(--red-bg);color:var(--red)">📄</div><div class="doc-name">Merger Agreement v4</div><div class="doc-meta">Alderman · PDF · May 14</div><div class="doc-badge" style="background:var(--gold-bg);color:var(--gold)">AI Review</div></div>
+    <div class="doc-card" onclick="openModal('analyze')"><div class="doc-icon" style="background:var(--blue-bg);color:var(--blue)">📋</div><div class="doc-name">Due Diligence Report</div><div class="doc-meta">Alderman · PDF · May 5</div><div class="doc-badge" style="background:var(--green-bg);color:var(--green)">Reviewed</div></div>
+    <div class="doc-card" onclick="openModal('analyze')"><div class="doc-icon" style="background:var(--gold-bg);color:var(--gold)">📊</div><div class="doc-name">SEC Form S-4 Draft</div><div class="doc-meta">Alderman · DOCX · May 15</div><div class="doc-badge" style="background:var(--red-bg);color:var(--red)">Pending</div></div>
+    <div class="doc-card" onclick="openModal('analyze')"><div class="doc-icon" style="background:var(--gold-bg);color:var(--gold)">📑</div><div class="doc-name">IP Assignment Agreement</div><div class="doc-meta">Bergmann · PDF · May 10</div><div class="doc-badge" style="background:var(--gold-bg);color:var(--gold)">AI Review</div></div>
+    <div class="doc-card" onclick="toast('📄','Opening document…')"><div class="doc-icon" style="background:var(--green-bg);color:var(--green)">📑</div><div class="doc-name">Employment Contract</div><div class="doc-meta">Chen · DOCX · Apr 28</div><div class="doc-badge" style="background:var(--green-bg);color:var(--green)">Signed</div></div>
+    <div class="doc-card" onclick="openModal('analyze')"><div class="doc-icon" style="background:var(--blue-bg);color:var(--blue)">🏛️</div><div class="doc-name">Motion to Dismiss</div><div class="doc-meta">Esparza · PDF · May 12</div><div class="doc-badge" style="background:var(--red-bg);color:var(--red)">Pending</div></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: DEADLINES ══ -->
+<div id="page-deadlines" class="page-view scroll-page" style="padding:26px">
+  <div class="page-header">
+    <div><h1 style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);margin-bottom:3px">All Deadlines</h1><p style="font-size:13px;color:var(--text3)">5 critical deadlines across all matters</p></div>
+    <button class="btn btn-primary" onclick="openModal('add-deadline')">+ Add Deadline</button>
+  </div>
+  <div id="dlFull"></div>
+</div>
+
+<!-- ══ PAGE: EMAILS ══ -->
+<div id="page-emails" class="page-view scroll-page" style="padding:26px">
+  <div class="page-header">
+    <div><h1 style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);margin-bottom:3px">All Emails</h1><p style="font-size:13px;color:var(--text3)">11 unread across 24 matters</p></div>
+    <button class="btn btn-primary" onclick="openModal('compose-email')">+ Compose</button>
+  </div>
+  <div class="section-card">
+    <div class="email-item unread" onclick="openModal('email-view')"><div class="e-dot"></div><div style="flex:1;min-width:0"><div class="e-from">Opposing Counsel · Greene &amp; Partners LLP</div><div class="e-subj">Re: Deposition Schedule — CFO T. Martinez</div><div class="e-prev">We propose May 28–29. Please confirm availability…</div></div><div class="e-time">Yesterday</div></div>
+    <div class="email-item unread" onclick="openModal('email-view')"><div class="e-dot"></div><div style="flex:1;min-width:0"><div class="e-from">Isaac Shute</div><div class="e-subj">Board is nervous about the indemnity clause</div><div class="e-prev">Hi James, board had their call last night…</div></div><div class="e-time">May 14</div></div>
+    <div class="email-item unread" onclick="openModal('email-view')"><div class="e-dot"></div><div style="flex:1;min-width:0"><div class="e-from">Hannah S. Kim</div><div class="e-subj">Wrongful termination — follow up on discovery</div><div class="e-prev">Any update on the document requests to opposing counsel?</div></div><div class="e-time">May 15</div></div>
+    <div class="email-item" onclick="openModal('email-view')"><div class="e-dot read"></div><div style="flex:1;min-width:0"><div class="e-from">FTC Filing System (Auto)</div><div class="e-subj">HSR Pre-Merger Notification — Filing Window Open</div><div class="e-prev">Your HSR notification window for #TX-2026-8841 is open…</div></div><div class="e-time">May 13</div></div>
+    <div class="email-item" onclick="openModal('email-view')"><div class="e-dot read"></div><div style="flex:1;min-width:0"><div class="e-from">Logan Sheehan</div><div class="e-subj">Urgent — court date moved up</div><div class="e-prev">The judge's clerk just called. Hearing rescheduled to June 2nd at 9am…</div></div><div class="e-time">May 13</div></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: SETTINGS ══ -->
+<div id="page-settings" class="page-view scroll-page" style="padding:26px">
+  <div class="page-header">
+    <div><h1 style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);margin-bottom:3px">Settings</h1><p style="font-size:13px;color:var(--text3)">Manage your firm, AI preferences, and notifications</p></div>
+  </div>
+  <div class="settings-card"><div class="settings-card-title">AI Preferences</div>
+    <div class="settings-row"><div><div class="s-label">Auto-detect deadlines from documents</div><div class="s-sub">Reapus scans uploaded docs for dates and creates reminders</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="settings-row"><div><div class="s-label">Legal action recommendations</div><div class="s-sub">Surface AI-generated action items on each matter dashboard</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="settings-row"><div><div class="s-label">Email categorization</div><div class="s-sub">Automatically link incoming emails to matching client matters</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
+  </div>
+  <div class="settings-card"><div class="settings-card-title">Notifications</div>
+    <div class="settings-row"><div><div class="s-label">Deadline reminders</div><div class="s-sub">Alerts 7 days, 3 days, and 1 day before each deadline</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="settings-row"><div><div class="s-label">Morning digest</div><div class="s-sub">Daily summary of pending follow-ups across all matters</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+  </div>
+  <div class="settings-card"><div class="settings-card-title">Firm Info</div>
+    <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+      <div class="form-row" style="width:100%;margin:0"><label class="form-label">Firm Name</label><input class="form-input" value="Davis & Associates LLP"></div>
+      <div class="form-row" style="width:100%;margin:0"><label class="form-label">Primary Attorney Email</label><input class="form-input" type="email" value="j.davis@davislaw.com"></div>
+    </div>
+    <div class="settings-row" style="justify-content:flex-end">
+      <button class="btn btn-primary" onclick="toast('✅','Settings saved successfully')">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: BILLING ══ -->
+<div id="page-billing" class="page-view scroll-page" style="padding:26px">
+  <div class="page-header">
+    <div><h1 style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);margin-bottom:3px">Billing & Invoices</h1><p style="font-size:13px;color:var(--text3)">All matters · invoices · outstanding balances</p></div>
+    <button class="btn btn-primary" onclick="openInvoiceModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>New Invoice
+    </button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+    <div class="kpi-card kpi-blue"><div class="kpi-label">Total Billed YTD</div><div class="kpi-value" id="bill-total">—</div><div class="kpi-sub">All matters combined</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-label">Collected</div><div class="kpi-value" id="bill-paid">—</div><div class="kpi-sub">Paid invoices</div></div>
+    <div class="kpi-card kpi-red"><div class="kpi-label">Outstanding</div><div class="kpi-value" id="bill-pending">—</div><div class="kpi-sub">Awaiting payment</div></div>
+  </div>
+  <div class="section-card" style="margin-bottom:0">
+    <div class="section-head">
+      <div class="section-head-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>All Invoices</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 14px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Invoice #</th>
+        <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 14px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Client</th>
+        <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 14px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Date</th>
+        <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 14px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Description</th>
+        <th style="font-size:10.5px;color:var(--text3);text-align:right;padding:8px 14px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Amount</th>
+        <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 14px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Status</th>
+        <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 14px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Actions</th>
+      </tr></thead>
+      <tbody id="billing-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /contentRoot -->
+</div><!-- /main -->
+
+<!-- ══════════════ MODALS ══════════════ -->
+
+<!-- NEW CLIENT -->
+<div class="modal-overlay" id="modal-new-client">
+<div class="modal" ><button class="modal-close" onclick="closeModal('new-client')">✕</button>
+  <div class="modal-title">Add New Client</div>
+  <div class="modal-sub">Client is added to your matter dashboard and sorted alphabetically.</div>
+  <div class="form-row-2">
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">First Name</label><input class="form-input" id="nFirst" placeholder="e.g. Thomas"></div>
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Last Name</label><input class="form-input" id="nLast" placeholder="e.g. Alderman"></div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="form-row"><label class="form-label">Matter / Case Name</label><input class="form-input" id="nMatter" placeholder="e.g. Corporate Merger — Alderman Holdings LLC"></div>
+  <div class="form-row-2">
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Practice Area</label><select class="form-input" id="nType"><option>Corporate / M&A</option><option>Litigation</option><option>Real Estate</option><option>IP / Patents</option><option>Family Law</option><option>Criminal Defense</option><option>Employment</option></select></div>
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Status</label><select class="form-input" id="nStatus"><option value="active">Active</option><option value="pending">Pending</option><option value="urgent">Urgent</option><option value="closed">Closed</option></select></div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="form-row"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="client@example.com"></div>
+  <div class="form-row"><label class="form-label">Notes</label><textarea class="form-input" rows="3" placeholder="Initial matter notes, referral source, urgency…"></textarea></div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('new-client')">Cancel</button>
+    <button class="btn btn-primary" onclick="addClient()">Create Matter</button>
+  </div>
+</div></div>
+
+<!-- AI ANALYZE -->
+<div class="modal-overlay" id="modal-analyze">
+<div class="modal"><button class="modal-close" onclick="closeModal('analyze')">✕</button>
+  <div class="modal-title">AI Document Analysis</div>
+  <div class="modal-sub">Reapus reads the selected document and surfaces legal risks, deadlines, and recommended actions.</div>
+  <div class="form-row"><label class="form-label">Select Document</label><select class="form-input"><option>Merger Agreement v4 (48 pages)</option><option>Due Diligence Report (127 pages)</option><option>SEC Form S-4 Draft (23 pages)</option><option>Board Resolution Draft (4 pages)</option><option>HSR Filing Template (8 pages)</option></select></div>
+  <div class="form-row"><label class="form-label">Analysis Focus</label><select class="form-input"><option>Full Review — All Issues</option><option>Deadline & Date Extraction</option><option>Risk & Liability Gaps</option><option>Regulatory Compliance</option><option>Drafting Errors & Omissions</option></select></div>
+  <div id="aResult" style="display:none">
+    <div class="analyze-result">
+      <div class="analyze-header"><span class="pulse"></span>Reapus AI Analysis Complete</div>
+      <div class="analyze-item"><strong>HSR Filing Required</strong> — Transaction value $142M exceeds threshold. File before May 23.</div>
+      <div class="analyze-item"><strong>Survival Clause Gap</strong> — §8.3(b): 18-month survival below market standard (36 months). Revise.</div>
+      <div class="analyze-item"><strong>MAC Definition Incomplete</strong> — §5.1 lacks carve-out for industry-wide conditions. Flag.</div>
+      <div class="analyze-item"><strong>Earn-out Dispute Risk</strong> — §3.4 EBITDA targets ambiguous. Add calculation methodology annex.</div>
+      <div class="analyze-item" style="border:none;font-size:11px;color:var(--text3)">Confidence: 91% · Analyzed 48-page document + case history</div>
+    </div>
+    <div class="modal-actions" style="border:none;padding-top:10px;margin-top:0">
+      <button class="btn btn-secondary" onclick="toast('📋','Analysis copied to clipboard')">Copy Results</button>
+      <button class="btn btn-secondary" onclick="openModal('add-deadline');closeModal('analyze')">Add as Deadline</button>
+      <button class="btn btn-primary" onclick="closeModal('analyze');toast('✅','Action items logged to matter')">Log Action Items</button>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('analyze')">Close</button>
+    <button class="btn btn-primary" id="aBtn" onclick="runAnalysis()">Run Analysis</button>
+  </div>
+</div></div>
+
+<!-- REMINDERS -->
+<div class="modal-overlay" id="modal-reminders">
+<div class="modal"><button class="modal-close" onclick="closeModal('reminders')">✕</button>
+  <div class="modal-title">Follow-up Reminders</div>
+  <div class="modal-sub">Click any reminder to mark it complete.</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div class="reminder-item" style="background:var(--bg3);border-radius:8px;border:1px solid var(--border)" onclick="this.style.opacity='0.4';this.style.textDecoration='line-through';toast('✅','Reminder complete')"><div class="rem-icon" style="background:var(--red-bg)">📞</div><div style="flex:1"><div style="font-size:13px;color:var(--text);font-weight:600">Alderman · Call re: HSR consent</div><div style="font-size:11.5px;color:var(--text3)">Corporate Merger</div></div><div class="rem-time" style="color:var(--red)">Today</div></div>
+    <div class="reminder-item" style="background:var(--bg3);border-radius:8px;border:1px solid var(--border)" onclick="this.style.opacity='0.4';this.style.textDecoration='line-through';toast('✅','Reminder complete')"><div class="rem-icon" style="background:var(--gold-bg)">📧</div><div style="flex:1"><div style="font-size:13px;color:var(--text);font-weight:600">Alderman · Reply to opposing counsel</div><div style="font-size:11.5px;color:var(--text3)">Corporate Merger</div></div><div class="rem-time">Tomorrow</div></div>
+    <div class="reminder-item" style="background:var(--bg3);border-radius:8px;border:1px solid var(--border)" onclick="this.style.opacity='0.4';this.style.textDecoration='line-through';toast('✅','Reminder complete')"><div class="rem-icon" style="background:var(--blue-bg)">📋</div><div style="flex:1"><div style="font-size:13px;color:var(--text);font-weight:600">Alderman · Send merger v4 redlines</div><div style="font-size:11.5px;color:var(--text3)">Corporate Merger</div></div><div class="rem-time">May 19</div></div>
+    <div class="reminder-item" style="background:var(--bg3);border-radius:8px;border:1px solid var(--border)" onclick="this.style.opacity='0.4';this.style.textDecoration='line-through';toast('✅','Reminder complete')"><div class="rem-icon" style="background:var(--red-bg)">⚖️</div><div style="flex:1"><div style="font-size:13px;color:var(--text);font-weight:600">Vasquez · File motion response</div><div style="font-size:11.5px;color:var(--text3)">Employment Dispute</div></div><div class="rem-time" style="color:var(--gold)">May 20</div></div>
+    <div class="reminder-item" style="background:var(--bg3);border-radius:8px;border:1px solid var(--border)" onclick="this.style.opacity='0.4';this.style.textDecoration='line-through';toast('✅','Reminder complete')"><div class="rem-icon" style="background:var(--bg4)">📁</div><div style="flex:1"><div style="font-size:13px;color:var(--text);font-weight:600">Nguyen · Close matter and archive</div><div style="font-size:11.5px;color:var(--text3)">Real Estate</div></div><div class="rem-time">May 22</div></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('reminders')">Close</button>
+    <button class="btn btn-primary" onclick="openModal('add-reminder');closeModal('reminders')">+ Add Reminder</button>
+  </div>
+</div></div>
+
+<!-- ADD REMINDER -->
+<div class="modal-overlay" id="modal-add-reminder">
+<div class="modal"><button class="modal-close" onclick="closeModal('add-reminder')">✕</button>
+  <div class="modal-title">Add Reminder</div>
+  <div class="modal-sub">Set a follow-up task for any matter.</div>
+  <div class="form-row"><label class="form-label">Reminder Text</label><input class="form-input" placeholder="e.g. Call client re: settlement offer"></div>
+  <div class="form-row-2">
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Due Date</label><input class="form-input" type="date"></div>
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Matter</label><select class="form-input"><option>Alderman — Corporate Merger</option><option>Vasquez — Employment</option><option>Esparza — Criminal Defense</option></select></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('add-reminder')">Cancel</button>
+    <button class="btn btn-primary" onclick="closeModal('add-reminder');toast('🔔','Reminder added successfully')">Save Reminder</button>
+  </div>
+</div></div>
+
+<!-- ADD UPDATE -->
+<div class="modal-overlay" id="modal-add-update">
+<div class="modal"><button class="modal-close" onclick="closeModal('add-update')">✕</button>
+  <div class="modal-title">Log Matter Update</div>
+  <div class="modal-sub">Add an entry to this client's timeline.</div>
+  <div class="upd-grid">
+    <div class="upd-btn selected" onclick="selUpd(this)"><div class="upd-icon">📞</div><div class="upd-label">Call</div></div>
+    <div class="upd-btn" onclick="selUpd(this)"><div class="upd-icon">📧</div><div class="upd-label">Email</div></div>
+    <div class="upd-btn" onclick="selUpd(this)"><div class="upd-icon">📄</div><div class="upd-label">Filing</div></div>
+    <div class="upd-btn" onclick="selUpd(this)"><div class="upd-icon">📝</div><div class="upd-label">Note</div></div>
+  </div>
+  <div class="form-row"><label class="form-label">Description</label><textarea class="form-input" rows="3" placeholder="Describe what happened, what was discussed, or what was filed…"></textarea></div>
+  <div class="form-row-2">
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Date & Time</label><input class="form-input" type="datetime-local"></div>
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Attorney</label><select class="form-input"><option>J. Davis</option><option>M. Chen (Paralegal)</option><option>External</option></select></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('add-update')">Cancel</button>
+    <button class="btn btn-primary" onclick="closeModal('add-update');toast('✅','Update added to matter timeline')">Log Update</button>
+  </div>
+</div></div>
+
+<!-- UPLOAD DOC -->
+<div class="modal-overlay" id="modal-upload-doc">
+<div class="modal"><button class="modal-close" onclick="closeModal('upload-doc')">✕</button>
+  <div class="modal-title">Upload Document</div>
+  <div class="modal-sub">Reapus AI will automatically analyze the document for deadlines and legal actions after upload.</div>
+  <div style="border:2px dashed var(--gold-border);border-radius:var(--r);padding:32px;text-align:center;margin-bottom:16px;background:var(--gold-bg);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--gold-border)'" onclick="toast('📁','File picker opened')">
+    <div style="font-size:28px;margin-bottom:8px">📂</div>
+    <div style="font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:4px">Drop files here or click to browse</div>
+    <div style="font-size:12px;color:var(--text3)">PDF, DOCX, XLSX · Max 50MB</div>
+  </div>
+  <div class="form-row"><label class="form-label">Document Type</label><select class="form-input"><option>Contract / Agreement</option><option>Court Filing</option><option>Correspondence</option><option>Evidence</option><option>Financial Records</option><option>Other</option></select></div>
+  <div class="form-row"><label class="form-label">Notes</label><input class="form-input" placeholder="Optional notes about this document…"></div>
+  <div style="display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;margin-bottom:4px">
+    <span class="pulse"></span><span style="font-size:12.5px;color:var(--gold);font-weight:600">AI will analyze this document automatically after upload</span>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('upload-doc')">Cancel</button>
+    <button class="btn btn-primary" onclick="closeModal('upload-doc');toast('✅','Document uploaded — AI analysis starting…')">Upload & Analyze</button>
+  </div>
+</div></div>
+
+<!-- COMPOSE EMAIL -->
+<div class="modal-overlay" id="modal-compose-email">
+<div class="modal modal-wide"><button class="modal-close" onclick="closeModal('compose-email')">✕</button>
+  <div class="modal-title">Compose Email</div>
+  <div class="form-row"><label class="form-label">To</label><input class="form-input" placeholder="recipient@example.com"></div>
+  <div class="form-row"><label class="form-label">Subject</label><input class="form-input" placeholder="Re: Matter Update…"></div>
+  <div class="form-row"><label class="form-label">Message</label><textarea class="form-input" rows="7" placeholder="Write your email…"></textarea></div>
+  <div class="form-row"><label class="form-label">Link to Matter</label><select class="form-input"><option>Alderman — Corporate Merger</option><option>Vasquez — Employment</option><option>Esparza — Criminal Defense</option><option>None</option></select></div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('compose-email')">Cancel</button>
+    <button class="btn btn-secondary" onclick="toast('📧','Draft saved')">Save Draft</button>
+    <button class="btn btn-primary" onclick="closeModal('compose-email');toast('✅','Email sent and logged to matter')">Send</button>
+  </div>
+</div></div>
+
+<!-- EMAIL VIEW -->
+<div class="modal-overlay" id="modal-email-view">
+<div class="modal modal-wide"><button class="modal-close" onclick="closeModal('email-view')">✕</button>
+  <div class="email-detail">
+    <div><div class="ed-subject">Re: Deposition Schedule — CFO T. Martinez</div><div class="ed-meta">From: <strong>Greene &amp; Partners LLP</strong> &nbsp;·&nbsp; Yesterday, 4:02 PM &nbsp;·&nbsp; To: j.davis@davislaw.com</div></div>
+    <div class="ed-body"><p>Dear Mr. Davis,</p><p>Following up on our discussion regarding the deposition of CFO Thomas Martinez in the Alderman Holdings merger matter.</p><p>We propose scheduling the deposition for <strong>May 28–29, 2026</strong>, at our offices at 350 Park Avenue, New York. Each session would be approximately 4 hours.</p><p>Please confirm availability and forward any scheduling constraints by <strong>Friday, May 17th</strong>. We are also open to a virtual format if preferred.</p><p>Best regards,<br>Michael Greene<br>Greene &amp; Partners LLP</p></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('email-view')">Close</button>
+    <button class="btn btn-secondary" onclick="openModal('add-update');closeModal('email-view')">Log to Matter</button>
+    <button class="btn btn-secondary" onclick="openModal('add-deadline');closeModal('email-view')">Add Deadline</button>
+    <button class="btn btn-primary" onclick="openModal('compose-email');closeModal('email-view')">Reply</button>
+  </div>
+</div></div>
+
+<!-- ADD DEADLINE -->
+<div class="modal-overlay" id="modal-add-deadline">
+<div class="modal"><button class="modal-close" onclick="closeModal('add-deadline')">✕</button>
+  <div class="modal-title">Add Deadline</div>
+  <div class="modal-sub">Reapus will send reminders as the date approaches.</div>
+  <div class="form-row"><label class="form-label">Deadline Title</label><input class="form-input" placeholder="e.g. HSR Antitrust Filing"></div>
+  <div class="form-row-2">
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Due Date</label><input class="form-input" type="date"></div>
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Type</label><select class="form-input"><option>Court Filing</option><option>Client Deliverable</option><option>Regulatory</option><option>Internal</option><option>Tentative</option></select></div>
+  </div>
+  <div style="height:10px"></div>
+  <div class="form-row"><label class="form-label">Notes</label><input class="form-input" placeholder="Additional context…"></div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('add-deadline')">Cancel</button>
+    <button class="btn btn-primary" onclick="closeModal('add-deadline');toast('📅','Deadline added — reminders scheduled')">Add Deadline</button>
+  </div>
+</div></div>
+
+<!-- DEADLINE DETAIL -->
+<div class="modal-overlay" id="modal-deadline-detail">
+<div class="modal"><button class="modal-close" onclick="closeModal('deadline-detail')">✕</button>
+  <div class="modal-title">HSR Antitrust Filing</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><span class="deadline-urgency urg-critical">7 days — May 23, 2026</span><span style="font-size:12px;color:var(--text3)">Regulatory · Auto-detected by Reapus AI</span></div>
+  <div class="analyze-result" style="margin-bottom:16px">
+    <div class="analyze-header"><span class="pulse"></span>Why this matters</div>
+    <div class="analyze-item">Transaction value ~$142M exceeds the HSR threshold of $119.5M. Under 15 U.S.C. §18a, both acquiring and acquired parties must file pre-merger notifications with the FTC and DOJ before closing.</div>
+  </div>
+  <div class="form-row"><label class="form-label">Assigned To</label><select class="form-input"><option>J. Davis</option><option>M. Chen (Paralegal)</option></select></div>
+  <div class="form-row"><label class="form-label">Reminder</label><select class="form-input"><option>3 days before</option><option>1 day before</option><option>1 week before</option><option>None</option></select></div>
+  <div class="modal-actions">
+    <button class="btn btn-danger" onclick="closeModal('deadline-detail');toast('🗑️','Deadline deleted')">Delete</button>
+    <button class="btn btn-secondary" onclick="closeModal('deadline-detail')">Close</button>
+    <button class="btn btn-primary" onclick="openModal('analyze');closeModal('deadline-detail')">Draft Filing with AI</button>
+  </div>
+</div></div>
+
+<!-- CLIENT PROFILE -->
+<div class="modal-overlay" id="modal-client-profile">
+<div class="modal modal-wide"><button class="modal-close" onclick="closeModal('client-profile')">✕</button>
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+    <div id="cpAvatar" class="m-avatar" style="background:rgba(40,96,168,.1);color:#2860A8;width:54px;height:54px;font-size:22px">AT</div>
+    <div><div class="modal-title" style="margin-bottom:2px" id="cpName">Isaac Shute</div><div style="font-size:12.5px;color:var(--text3)" id="cpSince">Client since Jan 14, 2025 · Corporate M&amp;A</div></div>
+  </div>
+  <div class="profile-grid">
+    <div class="pf"><div class="pf-label">Email</div><div class="pf-val" style="color:var(--gold)" id="cpEmail">—</div></div>
+    <div class="pf"><div class="pf-label">Phone</div><div class="pf-val" id="cpPhone">—</div></div>
+    <div class="pf"><div class="pf-label">Company</div><div class="pf-val" id="cpCompany">—</div></div>
+    <div class="pf"><div class="pf-label">Billing Rate</div><div class="pf-val" id="cpRate">—</div></div>
+    <div class="pf"><div class="pf-label">Opened</div><div class="pf-val" id="cpOpened">—</div></div>
+    <div class="pf"><div class="pf-label">Lead Attorney</div><div class="pf-val" id="cpAtty">J. Davis</div></div>
+  </div>
+  <div class="form-row" style="margin-top:14px"><label class="form-label">Notes</label><textarea class="form-input" rows="3" id="cpNotes">High-priority client. All external correspondence must be cleared through J. Davis.</textarea></div>
+  <div class="modal-actions">
+    <button class="btn btn-danger" onclick="closeModal('client-profile');toast('🗑️','Client archived')">Archive Client</button>
+    <button class="btn btn-secondary" onclick="closeModal('client-profile');switchTabByName('invoices')">View Invoices</button>
+    <button class="btn btn-primary" onclick="closeModal('client-profile');toast('✅','Profile saved')">Save Changes</button>
+  </div>
+</div></div>
+
+<!-- NEW INVOICE -->
+<div class="modal-overlay" id="modal-new-invoice">
+<div class="modal modal-wide"><button class="modal-close" onclick="closeModal('new-invoice')">✕</button>
+  <div class="modal-title">Create Invoice</div>
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;margin-bottom:18px">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <div><span style="font-size:12.5px;font-weight:600;color:var(--gold)" id="inv-client-name">Isaac Shute</span> <span style="font-size:12px;color:var(--text3)">·</span> <span style="font-size:12px;color:var(--text3)" id="inv-client-email">—</span></div>
+  </div>
+  <div class="form-row-2">
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Hours Billed</label><input class="form-input" id="inv-hours" type="number" placeholder="e.g. 12" min="0" step="0.5"></div>
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Hourly Rate ($)</label><input class="form-input" id="inv-rate" type="number" placeholder="e.g. 650" min="0"></div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="form-row"><label class="form-label">Services Description</label><textarea class="form-input" rows="2" id="inv-desc" placeholder="e.g. May legal services — merger drafting, client calls, filings…"></textarea></div>
+  <div class="form-row"><label class="form-label">Invoice Date</label><input class="form-input" type="date" id="inv-date"></div>
+  <div style="padding:12px 16px;background:var(--bg3);border-radius:8px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:13px;color:var(--text2)">Invoice Total</span>
+    <span style="font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text)" id="inv-total-display">$0</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;margin-bottom:4px">
+    <span class="pulse"></span><span style="font-size:12.5px;color:var(--gold);font-weight:600">Reapus AI will write the invoice email using this client's matter history</span>
+  </div>
+  <div id="inv-ai-preview" style="display:none;margin-top:14px">
+    <div class="analyze-result">
+      <div class="analyze-header"><span class="pulse"></span>AI-Written Invoice Email — Ready to Send</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:8px">
+        <pre id="inv-ai-text" style="font-family:'Outfit',sans-serif;font-size:12.5px;color:var(--text2);white-space:pre-wrap;line-height:1.6"></pre>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-secondary" onclick="toast('📋','Invoice email copied to clipboard')">Copy Email</button>
+      <button class="btn btn-primary" onclick="closeModal('new-invoice');toast('📧','Invoice sent to '+ALL_CLIENTS[activeIdx].email)">Send Invoice Now</button>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('new-invoice')">Cancel</button>
+    <button class="btn btn-secondary" onclick="toast('💾','Invoice saved as draft')">Save Draft</button>
+    <button class="btn btn-primary" id="inv-ai-btn" onclick="generateInvoiceAI()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Generate with AI
+    </button>
+  </div>
+</div></div>
+
+<!-- VIEW INVOICE -->
+<div class="modal-overlay" id="modal-view-invoice">
+<div class="modal"><button class="modal-close" onclick="closeModal('view-invoice')">✕</button>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div>
+      <div class="modal-title" id="view-inv-id" style="font-family:'DM Mono',monospace;font-size:18px">INV-2026-041</div>
+      <div style="font-size:12.5px;color:var(--text3);margin-top:2px" id="view-inv-date">May 1, 2026</div>
+    </div>
+    <div style="font-size:28px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text)" id="view-inv-amount">$0</div>
+  </div>
+  <div style="background:var(--bg3);border-radius:var(--r);padding:14px 16px;margin-bottom:16px">
+    <div style="font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Services</div>
+    <div style="font-size:13px;color:var(--text2)" id="view-inv-desc">—</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+    <span style="font-size:13px;color:var(--text2)">Status:</span>
+    <span style="font-size:13px;font-weight:700" id="view-inv-status">—</span>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('view-invoice')">Close</button>
+    <button class="btn btn-secondary" onclick="toast('🖨️','Invoice sent to printer')">Print</button>
+    <button class="btn btn-primary" onclick="closeModal('view-invoice');const c=ALL_CLIENTS[activeIdx];toast('📧','Invoice sent to '+c.email)">Send to Client</button>
+  </div>
+</div></div>
+
+<!-- MY PROFILE -->
+<div class="modal-overlay" id="modal-my-profile">
+<div class="modal"><button class="modal-close" onclick="closeModal('my-profile')">✕</button>
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+    <div style="width:52px;height:52px;border-radius:12px;background:var(--gold-bg);border:2px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--gold)">JD</div>
+    <div><div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:2px">James Davis</div><div style="font-size:12.5px;color:var(--text3)">Senior Partner · Davis &amp; Associates LLP</div></div>
+  </div>
+  <div class="form-row"><label class="form-label">Full Name</label><input class="form-input" value="James A. Davis"></div>
+  <div class="form-row"><label class="form-label">Email</label><input class="form-input" type="email" value="j.davis@davislaw.com"></div>
+  <div class="form-row"><label class="form-label">Bar Number</label><input class="form-input" value="NY-2204581"></div>
+  <div class="modal-actions">
+    <button class="btn btn-secondary" onclick="closeModal('my-profile')">Cancel</button>
+    <button class="btn btn-primary" onclick="closeModal('my-profile');toast('✅','Profile updated')">Save Changes</button>
+  </div>
+</div></div>
+
+<!-- TOAST -->
+<div class="toast" id="toastEl"><span class="toast-icon" id="toastIcon">✅</span><span id="toastMsg">Done</span></div>
+
+<script>
+const ALL_CLIENTS = [
+  {
+    last:"Shute",first:"Isaac",type:"Corporate M&A",status:"active",color:"#2860A8",bg:"rgba(40,96,168,.12)",initials:"IS",
+    email:"t.shute@aholdingsllc.com",phone:"+1 (212) 555-0194",company:"Alderman Holdings LLC",rate:650,opened:"Jan 14, 2025",attorney:"J. Davis",
+    matter:"Corporate Merger — Alderman Holdings LLC",daysOpen:122,urgentItems:3,docCount:4,aiConf:"87%",billedHours:84,
+    timeline:[
+      {dot:"var(--gold)",what:"SEC filing draft reviewed and returned with annotations",when:"Today, 9:14 AM",who:"J. Davis",type:"Filing",typeColor:"var(--gold)"},
+      {dot:"var(--blue)",what:"Email from opposing counsel re: deposition schedule",when:"Yesterday, 4:02 PM",who:"External",type:"Email",typeColor:"var(--blue)"},
+      {dot:"var(--green)",what:"Merger agreement v4 uploaded — 48 pages, pending AI review",when:"May 14, 2026",who:"M. Chen",type:"Doc",typeColor:"var(--green)"},
+      {dot:"var(--red)",what:"Deadline flagged: HSR antitrust filing due May 23",when:"May 13, 2026",who:"Reapus AI",type:"Alert",typeColor:"var(--red)"},
+      {dot:"var(--text3)",what:"Client call — 45 min. Board composition discussed.",when:"May 12, 2026",who:"J. Davis",type:"Call",typeColor:"var(--text3)"},
+    ],
+    deadlines:[
+      {day:"23",month:"May",title:"HSR Antitrust Filing",sub:"Federal mandatory",urg:"urg-critical",label:"7 days",color:"var(--red)"},
+      {day:"29",month:"May",title:"Board Approval Docs",sub:"Client deliverable",urg:"urg-soon",label:"13 days",color:"var(--gold)"},
+      {day:"08",month:"Jun",title:"Merger Closing Date",sub:"Target — tentative",urg:"urg-ok",label:"23 days",color:"var(--text2)"},
+    ],
+    reminders:["Call client re: HSR filing consent","Reply to opposing counsel on deposition","Send merger v4 redlines to client"],
+    docs:[
+      {icon:"📄",bg:"var(--red-bg)",color:"var(--red)",name:"Merger Agreement v4",meta:"PDF · 48 pages · May 14",badge:"AI Review",badgeBg:"var(--gold-bg)",badgeColor:"var(--gold)"},
+      {icon:"📋",bg:"var(--blue-bg)",color:"var(--blue)",name:"Due Diligence Report",meta:"PDF · 127 pages · May 5",badge:"Reviewed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+      {icon:"📊",bg:"var(--gold-bg)",color:"var(--gold)",name:"SEC Form S-4 Draft",meta:"DOCX · 23 pages · May 15",badge:"Pending",badgeBg:"var(--red-bg)",badgeColor:"var(--red)"},
+      {icon:"📑",bg:"var(--green-bg)",color:"var(--green)",name:"Retainer Agreement",meta:"PDF · 6 pages · Jan 14",badge:"Signed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+    ],
+    emails:[
+      {unread:true,from:"Opposing Counsel · Greene & Partners LLP",subj:"Re: Deposition Schedule — CFO T. Martinez",prev:"We propose May 28–29 for the deposition. Please confirm availability…",time:"Yesterday"},
+      {unread:true,from:"Isaac Shute",subj:"Board is nervous about the indemnity clause",prev:"Hi James, board had their call last night and flagged the indemnity section…",time:"May 14"},
+      {unread:false,from:"FTC Filing System",subj:"HSR Pre-Merger Notification — Filing Window Open",prev:"Your HSR notification window for #TX-2026-8841 is open. Response required…",time:"May 13"},
+    ],
+    aiRecs:[
+      {priority:"var(--red)",title:"File HSR Notification — URGENT",conf:"94%",body:"Merger value ~$142M triggers mandatory FTC/DOJ pre-merger filing under 15 U.S.C. §18a. Both parties must file before closing. Deadline: May 23, 2026."},
+      {priority:"var(--gold)",title:"Indemnification Gap Detected",conf:"87%",body:"§8.3(b) survival clause is 18 months; market standard is 36 months or SOL. Recommend redline revision before client sign-off."},
+      {priority:"var(--blue)",title:"Deposition Strategy",conf:"78%",body:"Opposing counsel intends to depose CFO Martinez. Prep documentation and brief CFO before scheduling. Est. 8–12 hrs prep."},
+    ],
+    invoices:[
+      {id:"INV-2026-041",date:"May 1, 2026",amount:18200,status:"paid",desc:"April — M&A due diligence, merger drafting, 28 hrs"},
+      {id:"INV-2026-028",date:"Apr 1, 2026",amount:22100,status:"paid",desc:"March — merger agreement drafting, board calls, 34 hrs"},
+    ]
+  },
+  {
+    last:"Coulter",first:"Phillip",type:"Employment",status:"active",color:"#2A8050",bg:"rgba(42,128,80,.12)",initials:"PC",
+    email:"marcus.coulter@starlightmedia.com",phone:"+1 (310) 555-0771",company:"Starlight Media Group",rate:500,opened:"Nov 20, 2025",attorney:"J. Davis",
+    matter:"Wrongful Termination Defense — Starlight Media Group",daysOpen:182,urgentItems:2,docCount:3,aiConf:"81%",billedHours:62,
+    timeline:[
+      {dot:"var(--red)",what:"Deposition of plaintiff scheduled for June 4th",when:"May 17, 2026",who:"Court",type:"Alert",typeColor:"var(--red)"},
+      {dot:"var(--blue)",what:"Discovery responses received from plaintiff's counsel — 847 pages",when:"May 10, 2026",who:"External",type:"Email",typeColor:"var(--blue)"},
+      {dot:"var(--gold)",what:"Motion for summary judgment filed in Superior Court LA",when:"Apr 5, 2026",who:"J. Davis",type:"Filing",typeColor:"var(--gold)"},
+      {dot:"var(--text3)",what:"Strategy call — reviewed termination documentation",when:"Feb 14, 2026",who:"J. Davis",type:"Call",typeColor:"var(--text3)"},
+    ],
+    deadlines:[
+      {day:"28",month:"May",title:"Discovery Cutoff",sub:"All discovery must be completed",urg:"urg-critical",label:"7 days",color:"var(--red)"},
+      {day:"04",month:"Jun",title:"Plaintiff Deposition",sub:"Scheduled hearing",urg:"urg-soon",label:"14 days",color:"var(--gold)"},
+      {day:"20",month:"Jun",title:"Pre-trial Conference",sub:"Judge Holloway, Dept. 12",urg:"urg-ok",label:"30 days",color:"var(--text2)"},
+    ],
+    reminders:["Prepare deposition outline for plaintiff","Review discovery responses with client","File witness list by May 25"],
+    docs:[
+      {icon:"📋",bg:"var(--blue-bg)",color:"var(--blue)",name:"Discovery Response Package",meta:"PDF · 89 pages · May 10",badge:"Pending",badgeBg:"var(--red-bg)",badgeColor:"var(--red)"},
+      {icon:"📊",bg:"var(--gold-bg)",color:"var(--gold)",name:"Motion for Summary Judgment",meta:"PDF · 34 pages · Apr 5",badge:"Filed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+      {icon:"📄",bg:"var(--green-bg)",color:"var(--green)",name:"Performance Review Records",meta:"ZIP · 3yr records · Apr 22",badge:"Reviewed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+    ],
+    emails:[
+      {unread:true,from:"Plaintiff's Counsel · Ortega & Walsh",subj:"Discovery Responses Enclosed",prev:"Please find attached 847 pages of discovery materials. Note that certain documents have been withheld…",time:"May 10"},
+      {unread:true,from:"Phillip Coulter",subj:"Are we in a good position?",prev:"James, I saw the discovery responses. There's a lot of material. Are we ready for the deposition?",time:"May 11"},
+    ],
+    aiRecs:[
+      {priority:"var(--red)",title:"Discovery Gap — Key Emails Missing",conf:"91%",body:"Plaintiff's production omits internal HR communications from Oct–Dec 2024. File motion to compel within 7 days before discovery cutoff."},
+      {priority:"var(--gold)",title:"Deposition Prep — Inconsistency Identified",conf:"85%",body:"Plaintiff's responses conflict with their LinkedIn post from Nov 2025 describing voluntary departure. Use in deposition cross-examination."},
+    ],
+    invoices:[
+      {id:"INV-2026-035",date:"May 1, 2026",amount:12500,status:"paid",desc:"April — discovery prep, motion drafting, 25 hrs"},
+      {id:"INV-2026-022",date:"Mar 1, 2026",amount:9000,status:"paid",desc:"February — case strategy, initial filings, 18 hrs"},
+      {id:"INV-2026-048",date:"May 19, 2026",amount:7500,status:"pending",desc:"May — deposition prep, witness list, 15 hrs"},
+    ]
+  },
+  {
+    last:"Sheehan",first:"Logan",type:"Criminal Defense",status:"urgent",color:"#C43A3A",bg:"rgba(196,58,58,.12)",initials:"LS",
+    email:"lucia.sheehan@privatemail.com",phone:"+1 (213) 555-0554",company:"Individual",rate:600,opened:"Feb 1, 2026",attorney:"J. Davis",
+    matter:"Criminal Defense — People v. Esparza",daysOpen:109,urgentItems:4,docCount:3,aiConf:"89%",billedHours:77,
+    timeline:[
+      {dot:"var(--red)",what:"URGENT: Judge rescheduled hearing to June 2nd — 9 AM",when:"May 13, 2026",who:"Court Clerk",type:"Alert",typeColor:"var(--red)"},
+      {dot:"var(--gold)",what:"Suppression motion filed — challenging search warrant validity",when:"May 8, 2026",who:"J. Davis",type:"Filing",typeColor:"var(--gold)"},
+      {dot:"var(--blue)",what:"DA's office disclosed 4 additional surveillance clips",when:"Apr 29, 2026",who:"DA Office",type:"Email",typeColor:"var(--blue)"},
+      {dot:"var(--red)",what:"Arraignment — not guilty plea entered",when:"Feb 14, 2026",who:"Court",type:"Hearing",typeColor:"var(--red)"},
+    ],
+    deadlines:[
+      {day:"25",month:"May",title:"Response to DA Disclosure",sub:"Surveillance footage review deadline",urg:"urg-critical",label:"4 days",color:"var(--red)"},
+      {day:"02",month:"Jun",title:"Suppression Hearing",sub:"Motion to suppress evidence",urg:"urg-critical",label:"12 days",color:"var(--red)"},
+      {day:"15",month:"Jun",title:"Trial Date",sub:"People v. Esparza — Dept. 8",urg:"urg-soon",label:"25 days",color:"var(--gold)"},
+    ],
+    reminders:["Review surveillance footage immediately","Prepare suppression hearing arguments","File witness list — due May 27"],
+    docs:[
+      {icon:"📄",bg:"var(--red-bg)",color:"var(--red)",name:"Suppression Motion",meta:"PDF · 28 pages · May 8",badge:"Filed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+      {icon:"📋",bg:"var(--gold-bg)",color:"var(--gold)",name:"Police Report & Evidence",meta:"PDF · 62 pages · Feb 14",badge:"AI Review",badgeBg:"var(--gold-bg)",badgeColor:"var(--gold)"},
+      {icon:"🎥",bg:"var(--blue-bg)",color:"var(--blue)",name:"Surveillance Footage Log",meta:"DOC · 8 pages · Apr 29",badge:"Pending",badgeBg:"var(--red-bg)",badgeColor:"var(--red)"},
+    ],
+    emails:[
+      {unread:true,from:"DA Office — Los Angeles County",subj:"Additional Evidence Disclosure — People v. Esparza",prev:"Pursuant to Brady obligations, we are disclosing 4 additional surveillance clips…",time:"Apr 29"},
+      {unread:true,from:"Logan Sheehan",subj:"I'm scared — what happens at the hearing?",prev:"James, I keep thinking about June 2nd. Can we talk before then? I need to understand what to expect.",time:"May 14"},
+    ],
+    aiRecs:[
+      {priority:"var(--red)",title:"Chain of Custody Issue — Key Evidence",conf:"93%",body:"DA disclosure lacks proper chain of custody docs for 2 of 4 clips. File motion to exclude under Evidence Code §1400 before the June 2nd hearing."},
+      {priority:"var(--red)",title:"Fourth Amendment — Warrant Overbreadth",conf:"88%",body:"Search warrant (Exhibit B) authorized seizure of 'electronic devices' without particularity. Suppression supported under Groh v. Ramirez (2004)."},
+      {priority:"var(--gold)",title:"Officer Timeline Discrepancy",conf:"79%",body:"Officer Martinez's report states arrival at 10:47 PM; CAD logs show 11:03 PM. 16-min gap weakens probable cause. Use in cross-examination."},
+    ],
+    invoices:[
+      {id:"INV-2026-043",date:"May 15, 2026",amount:19800,status:"pending",desc:"May — suppression motion, hearing prep, 33 hrs"},
+      {id:"INV-2026-029",date:"Apr 1, 2026",amount:14400,status:"paid",desc:"March — arraignment, evidence review, 24 hrs"},
+    ]
+  },
+  {
+    last:"Swope",first:"Frank",type:"Family Law",status:"active",color:"#2860A8",bg:"rgba(40,96,168,.12)",initials:"FS",
+    email:"jpswope@email.com",phone:"+1 (617) 555-0128",company:"Individual",rate:450,opened:"Jan 5, 2026",attorney:"J. Davis",
+    matter:"Divorce & Custody — Fitzgerald v. Fitzgerald",daysOpen:136,urgentItems:1,docCount:3,aiConf:"76%",billedHours:58,
+    timeline:[
+      {dot:"var(--gold)",what:"Custody evaluation report received from Dr. Patterson",when:"May 15, 2026",who:"Dr. Patterson",type:"Doc",typeColor:"var(--gold)"},
+      {dot:"var(--blue)",what:"Opposing counsel proposed settlement — $4,200/mo support, 60/40 custody",when:"May 9, 2026",who:"Walsh & Park",type:"Email",typeColor:"var(--blue)"},
+      {dot:"var(--text3)",what:"Mediation session — partial agreement on asset division",when:"Apr 18, 2026",who:"Mediator",type:"Hearing",typeColor:"var(--text3)"},
+      {dot:"var(--red)",what:"Emergency custody motion filed — safety concern reported",when:"Mar 22, 2026",who:"J. Davis",type:"Filing",typeColor:"var(--red)"},
+    ],
+    deadlines:[
+      {day:"31",month:"May",title:"Response to Settlement Offer",sub:"Counter-proposal due",urg:"urg-soon",label:"15 days",color:"var(--gold)"},
+      {day:"18",month:"Jun",title:"Custody Hearing",sub:"Family Court, Judge Rivera",urg:"urg-ok",label:"28 days",color:"var(--text2)"},
+    ],
+    reminders:["Review custody evaluation with client","Prepare counter-settlement proposal"],
+    docs:[
+      {icon:"📋",bg:"var(--gold-bg)",color:"var(--gold)",name:"Custody Evaluation Report",meta:"PDF · 38 pages · May 15",badge:"AI Review",badgeBg:"var(--gold-bg)",badgeColor:"var(--gold)"},
+      {icon:"📄",bg:"var(--blue-bg)",color:"var(--blue)",name:"Settlement Proposal",meta:"PDF · 6 pages · May 9",badge:"Pending",badgeBg:"var(--red-bg)",badgeColor:"var(--red)"},
+      {icon:"📑",bg:"var(--green-bg)",color:"var(--green)",name:"Marital Asset Inventory",meta:"XLSX · Apr 2026",badge:"Reviewed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+    ],
+    emails:[
+      {unread:true,from:"Opposing Counsel · Walsh & Park",subj:"Settlement Proposal — Fitzgerald Matter",prev:"Our client offers $4,200/month spousal support and a 60/40 custody arrangement…",time:"May 9"},
+      {unread:false,from:"Frank Swope",subj:"I want to reject the offer — 50/50 or nothing",prev:"James, the terms are unacceptable. I need at least 50/50 custody. Please counter immediately.",time:"May 10"},
+    ],
+    aiRecs:[
+      {priority:"var(--gold)",title:"Custody Eval Strongly Favors Client",conf:"84%",body:"Dr. Patterson's report notes the other parent's 'inconsistent availability' on 6 occasions. This language directly supports a primary custody argument at June 18th hearing."},
+      {priority:"var(--blue)",title:"Counter-Settlement Calculation",conf:"74%",body:"Proposed $4,200/mo support is 18% below state guidelines based on disclosed income. Counter at $5,100 with supporting documentation."},
+    ],
+    invoices:[
+      {id:"INV-2026-040",date:"May 1, 2026",amount:7650,status:"pending",desc:"April — mediation, custody motion response, 17 hrs"},
+      {id:"INV-2026-033",date:"Mar 1, 2026",amount:5400,status:"paid",desc:"February — initial filings, emergency motion, 12 hrs"},
+    ]
+  },
+  {
+    last:"O'Loughlin",first:"Aiden",type:"Litigation",status:"active",color:"#2A8050",bg:"rgba(42,128,80,.12)",initials:"AO",
+    email:"v.o'loughlin@o'loughlinind.com",phone:"+1 (404) 555-0449",company:"Hamilton Industries",rate:575,opened:"Oct 14, 2025",attorney:"J. Davis",
+    matter:"Commercial Litigation — Hamilton v. Apex Suppliers",daysOpen:219,urgentItems:1,docCount:3,aiConf:"78%",billedHours:92,
+    timeline:[
+      {dot:"var(--gold)",what:"Expert witness damages report submitted — $2.1M valuation",when:"May 14, 2026",who:"Dr. Ross",type:"Doc",typeColor:"var(--gold)"},
+      {dot:"var(--text3)",what:"Deposition of CFO completed — 6 hours",when:"Apr 28, 2026",who:"J. Davis",type:"Call",typeColor:"var(--text3)"},
+      {dot:"var(--blue)",what:"Opposing counsel requested 30-day extension on expert rebuttal",when:"Apr 20, 2026",who:"External",type:"Email",typeColor:"var(--blue)"},
+      {dot:"var(--gold)",what:"Trial date set for August 18, 2026",when:"Mar 10, 2026",who:"Court",type:"Alert",typeColor:"var(--gold)"},
+    ],
+    deadlines:[
+      {day:"10",month:"Jun",title:"Expert Report Rebuttal",sub:"Opposing expert deadline",urg:"urg-soon",label:"20 days",color:"var(--gold)"},
+      {day:"18",month:"Aug",title:"Trial Date",sub:"Atlanta Federal District Court",urg:"urg-ok",label:"89 days",color:"var(--text2)"},
+    ],
+    reminders:["Review opposing expert report","Prepare trial exhibit list","Notify client of trial schedule"],
+    docs:[
+      {icon:"📋",bg:"var(--green-bg)",color:"var(--green)",name:"Expert Witness Report",meta:"PDF · 58 pages · May 14",badge:"Reviewed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+      {icon:"📊",bg:"var(--blue-bg)",color:"var(--blue)",name:"Financial Damages Model",meta:"XLSX · Apr 2026",badge:"AI Review",badgeBg:"var(--gold-bg)",badgeColor:"var(--gold)"},
+      {icon:"📄",bg:"var(--gold-bg)",color:"var(--gold)",name:"Complaint & Exhibits",meta:"PDF · 114 pages · Oct 2025",badge:"Filed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+    ],
+    emails:[
+      {unread:false,from:"Aiden O'Loughlin",subj:"Expert report looks very solid",prev:"James, reviewed Dr. Ross's report thoroughly. I think we have a compelling case going into trial…",time:"May 15"},
+      {unread:false,from:"Opposing Counsel",subj:"Request for Expert Rebuttal Extension",prev:"We request an additional 30 days to respond to the expert report submitted on May 14th…",time:"Apr 20"},
+    ],
+    aiRecs:[
+      {priority:"var(--gold)",title:"Trial Strategy — Damages Mitigation Risk",conf:"77%",body:"Expert pegs damages at $2.1M. Opposing counsel will argue mitigation. Prepare counter-analysis showing Hamilton's documented, reasonable mitigation efforts."},
+    ],
+    invoices:[
+      {id:"INV-2026-038",date:"May 1, 2026",amount:16100,status:"paid",desc:"April — depositions, expert preparation, 28 hrs"},
+      {id:"INV-2026-019",date:"Dec 1, 2025",amount:18400,status:"paid",desc:"Nov–Dec — discovery, initial strategy, 32 hrs"},
+    ]
+  },
+  {
+    last:"Kim",first:"Hannah S.",type:"Employment",status:"urgent",color:"#C43A3A",bg:"rgba(196,58,58,.12)",initials:"HK",
+    email:"h.kim@personalmail.net",phone:"+1 (408) 555-0866",company:"Individual",rate:500,opened:"Apr 10, 2026",attorney:"J. Davis",
+    matter:"EEOC Discrimination Complaint — Kim v. NovaTech Corp",daysOpen:41,urgentItems:3,docCount:2,aiConf:"83%",billedHours:24,
+    timeline:[
+      {dot:"var(--red)",what:"EEOC Right-to-Sue letter received — 90-day federal filing clock starts",when:"May 18, 2026",who:"EEOC",type:"Alert",typeColor:"var(--red)"},
+      {dot:"var(--blue)",what:"NovaTech HR records subpoenaed",when:"May 5, 2026",who:"J. Davis",type:"Filing",typeColor:"var(--blue)"},
+      {dot:"var(--text3)",what:"Initial consultation — documented hostile work environment incidents",when:"Apr 10, 2026",who:"J. Davis",type:"Call",typeColor:"var(--text3)"},
+    ],
+    deadlines:[
+      {day:"01",month:"Jun",title:"HR Records Production",sub:"Response to subpoena due",urg:"urg-critical",label:"11 days",color:"var(--red)"},
+      {day:"15",month:"Aug",title:"Federal Lawsuit Filing",sub:"90 days from Right-to-Sue letter",urg:"urg-soon",label:"86 days",color:"var(--gold)"},
+    ],
+    reminders:["Draft federal complaint","Review subpoena response from NovaTech","Advise client on severance offer"],
+    docs:[
+      {icon:"📋",bg:"var(--red-bg)",color:"var(--red)",name:"EEOC Right-to-Sue Letter",meta:"PDF · 3 pages · May 18",badge:"AI Review",badgeBg:"var(--gold-bg)",badgeColor:"var(--gold)"},
+      {icon:"📄",bg:"var(--blue-bg)",color:"var(--blue)",name:"Incident Log & Witness List",meta:"DOCX · 15 pages · Apr 10",badge:"Reviewed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+    ],
+    emails:[
+      {unread:true,from:"EEOC — Region IX",subj:"Notice of Right to Sue — Charge #550-2026-01842",prev:"This letter authorizes you to file a lawsuit in federal court within 90 days of receipt…",time:"May 18"},
+      {unread:true,from:"Hannah S. Kim",subj:"NovaTech just offered me $45,000 to drop everything",prev:"James — my former employer called this morning and offered $45,000 to sign a full release. Should I take it?",time:"May 19"},
+    ],
+    aiRecs:[
+      {priority:"var(--red)",title:"Do Not Accept Severance — Case is Strong",conf:"89%",body:"EEOC findings support federal discrimination claim with potential damages of $150K–$300K. The $45K offer is significantly below expected recovery."},
+      {priority:"var(--gold)",title:"File Federal Complaint Now",conf:"83%",body:"Right-to-Sue letter starts 90-day clock. Draft and file in N.D. Cal. Include Title VII, FEHA, and retaliation claims. Stronger the faster you file."},
+    ],
+    invoices:[
+      {id:"INV-2026-042",date:"May 15, 2026",amount:6000,status:"pending",desc:"April–May — EEOC response, subpoena, intake, 12 hrs"},
+    ]
+  },
+  {
+    last:"Baker",first:"Dylan",type:"Real Estate",status:"closed",color:"#7A7770",bg:"rgba(122,119,112,.12)",initials:"DB",
+    email:"phuong.baker@bakerproperties.com",phone:"+1 (714) 555-0945",company:"Nguyen Properties",rate:475,opened:"Aug 3, 2025",attorney:"J. Davis",
+    matter:"Residential Portfolio Refinancing — Nguyen Properties",daysOpen:291,urgentItems:0,docCount:2,aiConf:"N/A",billedHours:48,
+    timeline:[
+      {dot:"var(--green)",what:"Refinancing closed successfully — all documents recorded with county",when:"Apr 15, 2026",who:"Escrow Co.",type:"Closed",typeColor:"var(--green)"},
+      {dot:"var(--gold)",what:"Final loan documents reviewed and executed",when:"Apr 10, 2026",who:"J. Davis",type:"Filing",typeColor:"var(--gold)"},
+      {dot:"var(--text3)",what:"Matter opened — 7-property portfolio refinancing review",when:"Aug 3, 2025",who:"J. Davis",type:"Call",typeColor:"var(--text3)"},
+    ],
+    deadlines:[],
+    reminders:["Archive matter documents","Send thank-you and request referral"],
+    docs:[
+      {icon:"📑",bg:"var(--green-bg)",color:"var(--green)",name:"Deed of Trust — All Properties",meta:"PDF · 12 pages · Apr 15",badge:"Signed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+      {icon:"📋",bg:"var(--blue-bg)",color:"var(--blue)",name:"Title Reports — 7 Properties",meta:"PDF · 84 pages · Sep 2025",badge:"Reviewed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+    ],
+    emails:[
+      {unread:false,from:"Dylan Baker",subj:"All done — wonderful experience working with you!",prev:"James, escrow confirmed everything recorded this morning. You were incredibly thorough throughout this process…",time:"Apr 15"},
+    ],
+    aiRecs:[],
+    invoices:[
+      {id:"INV-2026-023",date:"Apr 15, 2026",amount:6840,status:"paid",desc:"Final billing — closing documents, county recordings, 14.4 hrs"},
+      {id:"INV-2025-094",date:"Nov 1, 2025",amount:9120,status:"paid",desc:"Q4 2025 — title review, lender negotiations, 19.2 hrs"},
+    ]
+  },
+  {
+    last:"Cruz",first:"Carmen",type:"Employment",status:"active",color:"#2860A8",bg:"rgba(40,96,168,.12)",initials:"CC",
+    email:"carmen.cruz@techventures.com",phone:"+1 (512) 555-0334",company:"Apex Tech Ventures",rate:500,opened:"Dec 12, 2025",attorney:"J. Davis",
+    matter:"Non-Compete Enforcement — Apex Tech Ventures",daysOpen:160,urgentItems:2,docCount:3,aiConf:"80%",billedHours:55,
+    timeline:[
+      {dot:"var(--red)",what:"TRO hearing set for May 28th — prepare emergency brief immediately",when:"May 16, 2026",who:"Court",type:"Alert",typeColor:"var(--red)"},
+      {dot:"var(--gold)",what:"Temporary restraining order motion filed in W.D. Texas",when:"May 12, 2026",who:"J. Davis",type:"Filing",typeColor:"var(--gold)"},
+      {dot:"var(--blue)",what:"Former employee confirmed at competitor via LinkedIn post",when:"May 8, 2026",who:"Client",type:"Email",typeColor:"var(--blue)"},
+      {dot:"var(--text3)",what:"Matter opened — non-compete violation investigation initiated",when:"Dec 12, 2025",who:"J. Davis",type:"Call",typeColor:"var(--text3)"},
+    ],
+    deadlines:[
+      {day:"20",month:"May",title:"TRO Support Brief Due",sub:"Emergency court-ordered filing",urg:"urg-critical",label:"4 days",color:"var(--red)"},
+      {day:"28",month:"May",title:"TRO Hearing",sub:"Austin Federal Court, Judge Kim",urg:"urg-soon",label:"12 days",color:"var(--gold)"},
+    ],
+    reminders:["Finalize TRO brief tonight","Preserve LinkedIn screenshot as evidence","Notify client of hearing date"],
+    docs:[
+      {icon:"📋",bg:"var(--red-bg)",color:"var(--red)",name:"TRO Motion",meta:"PDF · 22 pages · May 12",badge:"Filed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+      {icon:"📄",bg:"var(--gold-bg)",color:"var(--gold)",name:"Non-Compete Agreement",meta:"PDF · 8 pages · Dec 2023",badge:"Reviewed",badgeBg:"var(--green-bg)",badgeColor:"var(--green)"},
+      {icon:"📊",bg:"var(--blue-bg)",color:"var(--blue)",name:"Trade Secret Inventory",meta:"XLSX · Apr 2026",badge:"AI Review",badgeBg:"var(--gold-bg)",badgeColor:"var(--gold)"},
+    ],
+    emails:[
+      {unread:true,from:"Carmen Cruz",subj:"He posted about his new job — we need to act NOW",prev:"James — he updated his LinkedIn today. The NDA clearly covers this. What can we do immediately?",time:"May 8"},
+      {unread:false,from:"Court Clerk — W.D. Texas",subj:"TRO Hearing Scheduled — May 28, 2026",prev:"The court has scheduled a temporary restraining order hearing in the above-referenced matter…",time:"May 16"},
+    ],
+    aiRecs:[
+      {priority:"var(--red)",title:"LinkedIn Post is Critical Evidence",conf:"92%",body:"Defendant's May 8th post confirms employment at competitor NexGen Labs. Screenshot and preserve immediately — social posts can be deleted. File as exhibit to TRO brief."},
+      {priority:"var(--gold)",title:"Strengthen Irreparable Harm Section",conf:"81%",body:"TRO motion's irreparable harm argument is thin. Add client declaration specifying trade secrets at risk and customer relationships the defendant accessed."},
+    ],
+    invoices:[
+      {id:"INV-2026-044",date:"May 15, 2026",amount:9500,status:"pending",desc:"May — TRO motion, emergency filings, court prep, 19 hrs"},
+      {id:"INV-2026-030",date:"Apr 1, 2026",amount:8000,status:"paid",desc:"March — NCA analysis, violation investigation, 16 hrs"},
+    ]
+  },
+];
+
+let activeIdx=0, currentPage='dashboard';
+/* ── RENDER CLIENT SIDEBAR ── */
+function renderClients(filter=''){
+  const list=document.getElementById('clientList');
+  list.innerHTML='';
+  ALL_CLIENTS.forEach((c,i)=>{
+    if(filter&&![c.last,c.first,c.type].join(' ').toLowerCase().includes(filter.toLowerCase()))return;
+    const d=document.createElement('div');
+    d.className='client-item'+(i===activeIdx&&currentPage==='dashboard'?' active':'');
+    d.style.animationDelay=(i*.025)+'s';
+    d.onclick=()=>{selectClient(i);setPage('dashboard')};
+    d.innerHTML=`<div class="c-av" style="background:${c.bg};color:${c.color}">${c.initials}</div><div class="ci"><div class="ci-name">${c.last}, ${c.first}</div><div class="ci-type">${c.type}</div></div><div class="c-dot c-${c.status}"></div>`;
+    list.appendChild(d);
+  });
+}
+
+/* ── SELECT CLIENT — renders all dynamic content ── */
+function selectClient(i){
+  activeIdx=i;
+  const c=ALL_CLIENTS[i];
+
+  // Header
+  document.getElementById('bcName').textContent=`${c.last}, ${c.first}`;
+  document.getElementById('mName').textContent=`${c.first} ${c.last}`;
+  const av=document.getElementById('mAvatar');
+  av.textContent=c.initials; av.style.background=c.bg; av.style.color=c.color;
+  const sm={active:'Active',pending:'Pending',urgent:'Urgent',closed:'Closed'};
+  const sc={active:'badge-active',pending:'badge-pending',urgent:'badge-urgent',closed:'badge-closed'};
+  const s=document.getElementById('mStatus');
+  s.textContent=sm[c.status]; s.className='status-badge '+sc[c.status];
+  document.getElementById('mCase').textContent=c.matter||`${c.type} · ${c.last} Matter`;
+
+  // Profile modal fields
+  document.getElementById('cpName').textContent=`${c.first} ${c.last}`;
+  document.getElementById('cpAvatar').textContent=c.initials;
+  document.getElementById('cpAvatar').style.background=c.bg;
+  document.getElementById('cpAvatar').style.color=c.color;
+  document.getElementById('cpEmail').textContent=c.email;
+  document.getElementById('cpPhone').textContent=c.phone||'—';
+  document.getElementById('cpCompany').textContent=c.company||'Individual';
+  document.getElementById('cpRate').textContent=`$${c.rate}/hr`;
+  document.getElementById('cpOpened').textContent=c.opened||'—';
+  document.getElementById('cpAtty').textContent=c.attorney||'J. Davis';
+
+  // KPI row
+  document.getElementById('kpi-days').textContent=c.daysOpen;
+  document.getElementById('kpi-urgent').textContent=c.urgentItems;
+  document.getElementById('kpi-docs').textContent=c.docCount;
+  document.getElementById('kpi-ai').textContent=c.aiConf;
+
+  // Timeline
+  const tlEl=document.getElementById('dyn-timeline');
+  if(tlEl&&c.timeline){
+    tlEl.innerHTML=c.timeline.map((t,ti)=>`
+      <div class="timeline-item" style="animation-delay:${ti*.06}s" onclick="openModal('add-update')">
+        <div class="tl-dot-col"><div class="tl-dot" style="background:${t.dot}"></div>${ti<c.timeline.length-1?'<div class="tl-line"></div>':''}</div>
+        <div class="tl-content"><div class="tl-what">${t.what}</div><div class="tl-meta"><span>${t.when}</span><span>${t.who}</span></div></div>
+        <div class="tl-type" style="background:${t.typeColor}22;color:${t.typeColor}">${t.type}</div>
+      </div>`).join('');
+  }
+
+  // Deadlines (sidebar card)
+  const dlEl=document.getElementById('dyn-deadlines-card');
+  if(dlEl&&c.deadlines){
+    dlEl.innerHTML=c.deadlines.length?c.deadlines.map(d=>`
+      <div class="deadline-item" onclick="openModal('deadline-detail')">
+        <div class="deadline-date" style="color:${d.color}"><div class="deadline-day">${d.day}</div><div class="deadline-month">${d.month}</div></div>
+        <div class="deadline-info"><div class="deadline-title">${d.title}</div><div class="deadline-sub">${d.sub}</div></div>
+        <div class="deadline-urgency ${d.urg}">${d.label}</div>
+      </div>`).join(''):'<div style="padding:16px 18px;font-size:12.5px;color:var(--text3)">No upcoming deadlines</div>';
+  }
+
+  // Deadlines tab
+  const dlTab=document.getElementById('dyn-deadlines-tab');
+  if(dlTab&&c.deadlines){
+    dlTab.innerHTML=c.deadlines.length?c.deadlines.map(d=>`
+      <div class="deadline-item" onclick="openModal('deadline-detail')">
+        <div class="deadline-date" style="color:${d.color}"><div class="deadline-day">${d.day}</div><div class="deadline-month">${d.month}</div></div>
+        <div class="deadline-info"><div class="deadline-title">${d.title}</div><div class="deadline-sub">${d.sub}</div></div>
+        <div class="deadline-urgency ${d.urg}">${d.label}</div>
+      </div>`).join(''):'<div style="padding:16px 18px;font-size:12.5px;color:var(--text3)">No upcoming deadlines for this matter</div>';
+  }
+
+  // Reminders
+  const remEl=document.getElementById('dyn-reminders');
+  if(remEl&&c.reminders){
+    const remIcons=['📞','📧','📋','⚖️','📁'];
+    const remBg=['var(--red-bg)','var(--gold-bg)','var(--blue-bg)','var(--red-bg)','var(--bg4)'];
+    remEl.innerHTML=c.reminders.map((r,ri)=>`
+      <div class="reminder-item" onclick="this.style.opacity='0.4';this.style.textDecoration='line-through';toast('✅','Reminder complete')">
+        <div class="rem-icon" style="background:${remBg[ri%remBg.length]}">${remIcons[ri%remIcons.length]}</div>
+        <div class="rem-text">${r}</div>
+      </div>`).join('');
+  }
+
+  // Docs
+  const docsEl=document.getElementById('dyn-docs');
+  if(docsEl&&c.docs){
+    docsEl.innerHTML=c.docs.map(d=>`
+      <div class="doc-card" onclick="openModal('analyze')">
+        <div class="doc-icon" style="background:${d.bg};color:${d.color}">${d.icon}</div>
+        <div class="doc-name">${d.name}</div>
+        <div class="doc-meta">${d.meta}</div>
+        <div class="doc-badge" style="background:${d.badgeBg};color:${d.badgeColor}">${d.badge}</div>
+      </div>`).join('');
+  }
+
+  // Emails
+  const mailEl=document.getElementById('dyn-emails');
+  if(mailEl&&c.emails){
+    mailEl.innerHTML=c.emails.map(e=>`
+      <div class="email-item${e.unread?' unread':''}" onclick="openModal('email-view')">
+        <div class="e-dot${e.unread?'':' read'}"></div>
+        <div style="flex:1;min-width:0">
+          <div class="e-from">${e.from}</div>
+          <div class="e-subj">${e.subj}</div>
+          <div class="e-prev">${e.prev}</div>
+        </div>
+        <div class="e-time">${e.time}</div>
+      </div>`).join('');
+  }
+
+  // AI Recs (overview bottom)
+  const aiEl=document.getElementById('dyn-ai-recs');
+  if(aiEl&&c.aiRecs){
+    aiEl.innerHTML=c.aiRecs.length?c.aiRecs.map(r=>`
+      <div class="ai-rec">
+        <div class="ai-rec-header"><div class="ai-rec-priority" style="background:${r.priority}"></div><div class="ai-rec-title">${r.title}</div><div class="ai-rec-conf">${r.conf}</div></div>
+        <div class="ai-rec-body">${r.body}</div>
+        <div class="ai-rec-actions">
+          <button class="ai-btn ai-btn-primary" onclick="openModal('analyze')">Review ↗</button>
+          <button class="ai-btn ai-btn-ghost" onclick="toast('✅','Dismissed')">Dismiss</button>
+        </div>
+      </div>`).join(''):'<div style="padding:20px;font-size:13px;color:var(--text3);text-align:center">No AI recommendations at this time</div>';
+  }
+
+  // AI tab recs
+  const aiTabEl=document.getElementById('dyn-ai-tab');
+  if(aiTabEl&&c.aiRecs){
+    aiTabEl.innerHTML=c.aiRecs.length?c.aiRecs.map(r=>`
+      <div class="ai-rec" style="border:1px solid var(--border);border-radius:var(--r);padding:18px 20px">
+        <div class="ai-rec-header"><div class="ai-rec-priority" style="background:${r.priority}"></div><div class="ai-rec-title">${r.title}</div><div class="ai-rec-conf">${r.conf} confidence</div></div>
+        <div class="ai-rec-body" style="font-size:13px">${r.body}</div>
+        <div class="ai-rec-actions">
+          <button class="ai-btn ai-btn-primary" onclick="openModal('analyze')">Take Action ↗</button>
+          <button class="ai-btn ai-btn-ghost" onclick="this.closest('.ai-rec').style.opacity='0.4';toast('✅','Marked as handled')">Mark Handled</button>
+        </div>
+      </div>`).join(''):'<div style="padding:28px;text-align:center;font-size:13px;color:var(--text3)">No AI actions for this matter — upload documents to generate recommendations.</div>';
+  }
+
+  // Update tab counts
+  const setTC=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val};
+  setTC('tab-ct-timeline',(c.timeline||[]).length);
+  setTC('tab-ct-docs',(c.docs||[]).length);
+  setTC('tab-ct-mail',(c.emails||[]).length);
+  setTC('tab-ct-dl',(c.deadlines||[]).length);
+  setTC('tab-ct-ai',(c.aiRecs||[]).length);
+  const pendingInv=(c.invoices||[]).filter(v=>v.status!=='paid').length;
+  setTC('tab-ct-inv',pendingInv>0?`${pendingInv} due`:(c.invoices||[]).length);
+  // Update billing nav badge
+  const allPending=ALL_CLIENTS.reduce((s,cl)=>s+(cl.invoices||[]).filter(v=>v.status!=='paid').length,0);
+  const nb=document.getElementById('nav-billing-badge');
+  if(nb){nb.textContent=allPending>0?`${allPending} due`:'✓';nb.className=allPending>0?'nav-badge alert':'nav-badge';}
+  // Update cpSince
+  const cs=document.getElementById('cpSince');
+  if(cs) cs.textContent=`Client since ${c.opened||'—'} · ${c.type}`;
+  // Invoices tab
+  renderInvoicesTab(c);
+
+  renderClients(document.getElementById('gSearch').value);
+  switchTabByName('overview');
+}
+
+/* ── RENDER INVOICES TAB ── */
+function renderInvoicesTab(c){
+  const el=document.getElementById('dyn-invoices-tab');
+  if(!el)return;
+  const totalPaid=(c.invoices||[]).filter(v=>v.status==='paid').reduce((s,v)=>s+v.amount,0);
+  const totalPending=(c.invoices||[]).filter(v=>v.status!=='paid').reduce((s,v)=>s+v.amount,0);
+  el.innerHTML=`
+    <div class="panel">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+        <div class="kpi-card kpi-green"><div class="kpi-label">Billed Hours</div><div class="kpi-value">${c.billedHours||0}</div><div class="kpi-sub">At $${c.rate||0}/hr</div></div>
+        <div class="kpi-card kpi-gold"><div class="kpi-label">Total Billed</div><div class="kpi-value">$${((c.billedHours||0)*(c.rate||0)).toLocaleString()}</div><div class="kpi-sub">${(c.invoices||[]).length} invoices</div></div>
+        <div class="kpi-card kpi-${totalPending>0?'red':'blue'}"><div class="kpi-label">Outstanding</div><div class="kpi-value">$${totalPending.toLocaleString()}</div><div class="kpi-sub">${totalPending>0?'Awaiting payment':'All paid'}</div></div>
+      </div>
+      <div class="section-card" style="margin-bottom:16px">
+        <div class="section-head">
+          <div class="section-head-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Invoices</div>
+          <button class="btn btn-primary" style="height:28px;padding:0 12px;font-size:12px" onclick="openInvoiceModal()">+ New Invoice</button>
+        </div>
+        ${(c.invoices||[]).length?`
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 16px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Invoice #</th>
+            <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 16px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Date</th>
+            <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 16px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Description</th>
+            <th style="font-size:10.5px;color:var(--text3);text-align:right;padding:8px 16px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Amount</th>
+            <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 16px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Status</th>
+            <th style="font-size:10.5px;color:var(--text3);text-align:left;padding:8px 16px;border-bottom:2px solid var(--border);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Actions</th>
+          </tr></thead>
+          <tbody>${(c.invoices||[]).map(inv=>`
+            <tr style="transition:background .15s;cursor:pointer" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+              <td style="padding:12px 16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);font-weight:600;border-bottom:1px solid var(--border2)">${inv.id}</td>
+              <td style="padding:12px 16px;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border2)">${inv.date}</td>
+              <td style="padding:12px 16px;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border2)">${inv.desc}</td>
+              <td style="padding:12px 16px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text);text-align:right;border-bottom:1px solid var(--border2)">$${inv.amount.toLocaleString()}</td>
+              <td style="padding:12px 16px;border-bottom:1px solid var(--border2)"><span style="font-size:10.5px;padding:3px 9px;border-radius:20px;font-weight:600;background:${inv.status==='paid'?'var(--green-bg)':'var(--gold-bg)'};color:${inv.status==='paid'?'var(--green)':'var(--gold)'}">${inv.status==='paid'?'Paid':'Pending'}</span></td>
+              <td style="padding:12px 16px;border-bottom:1px solid var(--border2)">
+                <div style="display:flex;gap:6px">
+                  <button class="ai-btn ai-btn-primary" onclick="viewInvoice('${inv.id}')">View</button>
+                  ${inv.status!=='paid'?`<button class="ai-btn ai-btn-ghost" onclick="sendInvoiceEmail('${inv.id}')">Send</button>`:''}
+                </div>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`:'<div style="padding:28px;text-align:center;font-size:13px;color:var(--text3)">No invoices yet — click New Invoice to create one.</div>'}
+      </div>
+    </div>`;
+}
+
+/* ── SET PAGE ── */
+function setPage(page){
+  currentPage=page;
+  document.querySelectorAll('.page-view').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('page-'+page);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-item[id^="nav-"]').forEach(n=>n.classList.remove('active'));
+  const nv=document.getElementById('nav-'+page);
+  if(nv) nv.classList.add('active');
+  if(page==='clients') renderClientsTable();
+  if(page==='deadlines') renderDLFull();
+  if(page==='billing') renderBillingPage();
+  renderClients(document.getElementById('gSearch').value);
+}
+
+/* ── CLIENTS TABLE ── */
+function renderClientsTable(){
+  const tb=document.getElementById('clientsTableBody');
+  if(!tb)return; tb.innerHTML='';
+  const acts=['Today','Yesterday','May 18','May 17','May 16','May 15','May 14','May 13','May 11','May 10','May 9','May 8','May 5','May 3','Apr 30'];
+  const sm={active:'Active',pending:'Pending',urgent:'Urgent',closed:'Closed'};
+  const sc={active:'badge-active',pending:'badge-pending',urgent:'badge-urgent',closed:'badge-closed'};
+  ALL_CLIENTS.forEach((c,i)=>{
+    const tr=document.createElement('tr');
+    tr.style.animationDelay=(i*.025)+'s';
+    tr.onclick=()=>{selectClient(i);setPage('dashboard')};
+    tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:9px"><div class="c-av" style="background:${c.bg};color:${c.color};width:28px;height:28px;font-size:10.5px;font-weight:700;border-radius:6px;display:flex;align-items:center;justify-content:center">${c.initials}</div><span style="font-weight:600">${c.last}, ${c.first}</span></div></td><td style="color:var(--text2)">${c.matter||c.type+' · '+c.last+' Matter'}</td><td style="color:var(--text2)">${c.type}</td><td><span class="status-badge ${sc[c.status]}">${sm[c.status]}</span></td><td style="color:var(--text3);font-family:'DM Mono',monospace;font-size:12px">${acts[i]||'Apr 10'}</td><td><button class="btn btn-secondary" style="height:26px;padding:0 10px;font-size:11.5px" onclick="event.stopPropagation();selectClient(${i});setPage('dashboard')">Open →</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ── DEADLINES FULL ── */
+function renderDLFull(){
+  const el=document.getElementById('dlFull');
+  if(!el)return;
+  const all=[];
+  ALL_CLIENTS.forEach(c=>{
+    (c.deadlines||[]).forEach(d=>{all.push({...d,clientName:c.last})});
+  });
+  // sort by urgency label crude
+  const urgOrder={'urg-critical':0,'urg-soon':1,'urg-ok':2};
+  all.sort((a,b)=>(urgOrder[a.urg]||2)-(urgOrder[b.urg]||2));
+  el.innerHTML=all.length?all.map((d,i)=>`
+    <div class="dl-full-item" style="animation-delay:${i*.04}s" onclick="openModal('deadline-detail')">
+      <div class="deadline-date" style="color:${d.color}"><div class="deadline-day">${d.day}</div><div class="deadline-month">${d.month}</div></div>
+      <div class="deadline-info" style="flex:1"><div class="deadline-title">${d.title}</div><div class="deadline-sub">${d.clientName} · ${d.sub}</div></div>
+      <div class="deadline-urgency ${d.urg}">${d.label}</div>
+      <button class="btn btn-secondary" style="height:28px;padding:0 12px;font-size:12px" onclick="event.stopPropagation();openModal('deadline-detail')">Details</button>
+    </div>`).join(''):'<div style="padding:28px;text-align:center;font-size:13px;color:var(--text3)">No upcoming deadlines across all matters.</div>';
+}
+
+/* ── BILLING PAGE ── */
+function renderBillingPage(){
+  const el=document.getElementById('billing-summary');
+  if(!el)return;
+  let totalBilled=0,totalPending=0,totalPaid=0;
+  ALL_CLIENTS.forEach(c=>{
+    (c.invoices||[]).forEach(inv=>{
+      totalBilled+=inv.amount;
+      if(inv.status==='paid') totalPaid+=inv.amount;
+      else totalPending+=inv.amount;
+    });
+  });
+  document.getElementById('bill-total').textContent='$'+totalBilled.toLocaleString();
+  document.getElementById('bill-paid').textContent='$'+totalPaid.toLocaleString();
+  document.getElementById('bill-pending').textContent='$'+totalPending.toLocaleString();
+
+  const tbody=document.getElementById('billing-table-body');
+  if(!tbody)return; tbody.innerHTML='';
+  ALL_CLIENTS.forEach((c,ci)=>{
+    (c.invoices||[]).forEach((inv,ii)=>{
+      const tr=document.createElement('tr');
+      tr.style.animationDelay=((ci*3+ii)*.02)+'s';
+      tr.style.cursor='pointer';
+      tr.onmouseover=()=>tr.style.background='var(--bg3)';
+      tr.onmouseout=()=>tr.style.background='';
+      tr.innerHTML=`
+        <td style="padding:11px 14px;font-family:'DM Mono',monospace;font-size:11.5px;color:var(--text);font-weight:600;border-bottom:1px solid var(--border2)">${inv.id}</td>
+        <td style="padding:11px 14px;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border2)"><div style="display:flex;align-items:center;gap:8px"><div style="width:24px;height:24px;border-radius:5px;background:${c.bg};color:${c.color};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">${c.initials}</div>${c.last}, ${c.first}</div></td>
+        <td style="padding:11px 14px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border2)">${inv.date}</td>
+        <td style="padding:11px 14px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border2)">${inv.desc}</td>
+        <td style="padding:11px 14px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text);text-align:right;border-bottom:1px solid var(--border2)">$${inv.amount.toLocaleString()}</td>
+        <td style="padding:11px 14px;border-bottom:1px solid var(--border2)"><span style="font-size:10.5px;padding:3px 9px;border-radius:20px;font-weight:600;background:${inv.status==='paid'?'var(--green-bg)':'var(--gold-bg)'};color:${inv.status==='paid'?'var(--green)':'var(--gold)'}">${inv.status==='paid'?'Paid':'Pending'}</span></td>
+        <td style="padding:11px 14px;border-bottom:1px solid var(--border2)">
+          <div style="display:flex;gap:5px">
+            <button class="ai-btn ai-btn-primary" onclick="viewInvoice('${inv.id}')">View</button>
+            ${inv.status!=='paid'?`<button class="ai-btn ai-btn-ghost" onclick="sendInvoiceEmail('${inv.id}')">Send</button>`:'<button class="ai-btn ai-btn-ghost" onclick="toast(\'✅\',\'Receipt resent\')">Receipt</button>'}
+          </div>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+/* ── INVOICE HELPERS ── */
+function openInvoiceModal(){
+  const c=ALL_CLIENTS[activeIdx];
+  document.getElementById('inv-client-name').textContent=`${c.first} ${c.last}`;
+  document.getElementById('inv-client-email').textContent=c.email;
+  document.getElementById('inv-rate').value=c.rate||500;
+  document.getElementById('inv-ai-preview').style.display='none';
+  openModal('new-invoice');
+}
+function generateInvoiceAI(){
+  const c=ALL_CLIENTS[activeIdx];
+  const btn=document.getElementById('inv-ai-btn');
+  btn.innerHTML='<span class="spinner"></span>';
+  btn.disabled=true;
+  setTimeout(()=>{
+    const hrs=document.getElementById('inv-hours').value||0;
+    const rate=document.getElementById('inv-rate').value||c.rate;
+    const total=(hrs*rate).toLocaleString();
+    document.getElementById('inv-ai-text').textContent=`Re: Legal Services — ${c.matter||c.type+' Matter'}\n\nDear ${c.first},\n\nPlease find enclosed your invoice for legal services rendered in connection with the above-referenced matter. A total of ${hrs} hours were billed at $${rate}/hr for a balance of $${total}.\n\nServices included: ${c.timeline&&c.timeline[0]?c.timeline[0].what:'Legal representation and counsel'}, and related matter management.\n\nPayment is due within 30 days. Please remit to Davis & Associates LLP.\n\nThank you for your continued trust.\n\nJames A. Davis, Esq.\nDavis & Associates LLP`;
+    document.getElementById('inv-ai-preview').style.display='block';
+    btn.textContent='Regenerate'; btn.disabled=false;
+  },1600);
+}
+function viewInvoice(id){
+  document.getElementById('view-inv-id').textContent=id;
+  const c=ALL_CLIENTS[activeIdx];
+  const inv=(c.invoices||[]).find(v=>v.id===id)||(ALL_CLIENTS.flatMap(cl=>cl.invoices||[]).find(v=>v.id===id));
+  if(inv){
+    document.getElementById('view-inv-amount').textContent='$'+inv.amount.toLocaleString();
+    document.getElementById('view-inv-date').textContent=inv.date;
+    document.getElementById('view-inv-status').textContent=inv.status==='paid'?'✅ Paid':'⏳ Pending';
+    document.getElementById('view-inv-desc').textContent=inv.desc;
+  }
+  openModal('view-invoice');
+}
+function sendInvoiceEmail(id){
+  const c=ALL_CLIENTS[activeIdx]||ALL_CLIENTS.find(cl=>(cl.invoices||[]).some(v=>v.id===id));
+  toast('📧',`Invoice ${id} sent to ${c?c.email:'client'}`);
+}
+
+/* ── SEARCH ── */
+function handleSearch(v){renderClients(v)}
+
+/* ── TAB SWITCHING ── */
+/* ── MODALS ── */
+function openModal(id){
+  const el=document.getElementById('modal-'+id);
+  if(el) el.classList.add('open');
+}
+function closeModal(id){
+  const el=document.getElementById('modal-'+id);
+  if(el) el.classList.remove('open');
+  if(id==='analyze'){
+    const r=document.getElementById('aResult');
+    const b=document.getElementById('aBtn');
+    if(r) r.style.display='none';
+    if(b){b.textContent='Run Analysis';b.disabled=false}
+  }
+}
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o){const id=o.id.replace('modal-','');closeModal(id)}});
+});
+
+/* ── AI ANALYZE ── */
+function runAnalysis(){
+  const btn=document.getElementById('aBtn');
+  btn.innerHTML='<span class="spinner"></span>';
+  btn.disabled=true;
+  setTimeout(()=>{
+    document.getElementById('aResult').style.display='block';
+    btn.textContent='Re-analyze'; btn.disabled=false;
+  },1800);
+}
+
+/* ── ADD CLIENT ── */
+function addClient(){
+  const first=document.getElementById('nFirst').value.trim();
+  const last=document.getElementById('nLast').value.trim();
+  const type=document.getElementById('nType').value;
+  const status=document.getElementById('nStatus').value;
+  if(!first||!last){toast('⚠️','Please enter first and last name');return}
+  const cp={active:['#2860A8','rgba(40,96,168,.12)'],pending:['#B8922A','rgba(184,146,42,.12)'],urgent:['#C43A3A','rgba(196,58,58,.12)'],closed:['#7A7770','rgba(122,119,112,.12)']};
+  const [color,bg]=cp[status];
+  ALL_CLIENTS.push({last,first,type,status,color,bg,initials:(first[0]||'')+(last[0]||''),email:'',phone:'',company:'Individual',rate:500,opened:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),attorney:'J. Davis',matter:`${type} · ${last} Matter`,daysOpen:0,urgentItems:0,docCount:0,aiConf:'N/A',billedHours:0,timeline:[],deadlines:[],reminders:[],docs:[],emails:[],aiRecs:[],invoices:[]});
+  ALL_CLIENTS.sort((a,b)=>a.last.localeCompare(b.last));
+  closeModal('new-client');
+  ['nFirst','nLast','nMatter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  renderClients();
+  toast('✅',`${first} ${last} added to your matters`);
+}
+
+/* ── UPDATE TYPE SELECT ── */
+function selUpd(el){document.querySelectorAll('.upd-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected')}
+
+/* ── DOC FILTER ── */
+function filterDocs(el,label){document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');toast('🔍',`Filtering: ${label}`)}
+
+/* ── TOAST ── */
+let toastT;
+function toast(icon,msg){
+  const el=document.getElementById('toastEl');
+  document.getElementById('toastIcon').textContent=icon;
+  document.getElementById('toastMsg').textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+/* ── SWITCH TAB ── */
+function switchTab(el,id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const tp=document.getElementById('tp-'+id);
+  if(tp) tp.classList.add('active');
+}
+function switchTabByName(id){
+  const map={overview:0,timeline:1,docs:2,mail:3,dl:4,ai:5,invoices:6};
+  const tabs=document.querySelectorAll('.tab');
+  const idx=map[id];
+  if(idx===undefined)return;
+  tabs.forEach(t=>t.classList.remove('active'));
+  if(tabs[idx]) tabs[idx].classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const tp=document.getElementById('tp-'+id);
+  if(tp) tp.classList.add('active');
+}
+
+// ── INIT ──
+// Wire up live invoice total calculator
+function wireInvoiceCalc(){
+  const hrs=document.getElementById('inv-hours');
+  const rate=document.getElementById('inv-rate');
+  const disp=document.getElementById('inv-total-display');
+  if(!hrs||!rate||!disp)return;
+  const calc=()=>{const t=(parseFloat(hrs.value)||0)*(parseFloat(rate.value)||0);disp.textContent='$'+t.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0});};
+  hrs.addEventListener('input',calc);
+  rate.addEventListener('input',calc);
+}
+// Update nav badges
+const totalDeadlines=ALL_CLIENTS.reduce((s,c)=>s+(c.deadlines||[]).length,0);
+const dlBadge=document.getElementById('nav-deadlines-badge');
+if(dlBadge){dlBadge.textContent=totalDeadlines;dlBadge.className=totalDeadlines>0?'nav-badge alert':'nav-badge';}
+const clBadge=document.getElementById('nav-clients-badge');
+if(clBadge) clBadge.textContent=ALL_CLIENTS.length;
+// Update all clients count in nav
+document.querySelectorAll('#nav-clients .nav-badge').forEach(b=>b.textContent=ALL_CLIENTS.length);
+// Render sidebar + select first client
+renderClients();
+selectClient(0);
+wireInvoiceCalc();
+// Set today date as default invoice date
+const invDate=document.getElementById('inv-date');
+if(invDate) invDate.value=new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
